@@ -35,6 +35,8 @@ The `.alog` format in this collection is a Python dictionary representation, not
 |---|---|---|
 | Profile name | `title` | Filename will be the fallback |
 | Green/final batch weight | `weight` | `[green weight, final weight, unit]` |
+| Roast notes | `roastingnotes` | Optional free text |
+| Cupping notes | `cuppingnotes` | Optional free text |
 | Units | `mode` | `C` in the supplied set |
 | Main timestamps | `timex` | Seconds from recording start |
 | Exhaust/environment temperature | `temp1` | Artisan ET channel |
@@ -116,6 +118,7 @@ Table behavior:
 - A **Clear all** action removes every profile.
 - Duplicate files are detected by filename plus file size and are not added twice.
 - Import errors appear per file and do not prevent valid files from loading.
+- Hovering a table row displays its roast notes and cupping notes when either is present. Available notes are labeled separately; empty note sections are omitted. The same tooltip is available by keyboard-focusing a row that has notes.
 
 ### 3.3 Chart interaction
 
@@ -204,6 +207,10 @@ The backend will return only fields needed by the browser. The table's profile l
   "displayName": "profile",
   "title": "Internal Artisan roast title",
   "unit": "C",
+  "notes": {
+    "roast": "Roast operator notes",
+    "cupping": "Cupping observations"
+  },
   "weights": {
     "green": 125.0,
     "final": 105.0,
@@ -369,6 +376,7 @@ An optional `--port` argument will resolve port conflicts.
 ## 7. Accessibility and responsiveness
 
 - Every checkbox and action has a visible label and keyboard focus state.
+- Rows containing roast or cupping notes can be focused to reveal the same labeled notes tooltip provided on mouseover.
 - File selection works without drag-and-drop.
 - Colors are not the only encoding: filenames, line styles, and event labels remain present.
 - Controls wrap cleanly on narrow screens.
@@ -400,6 +408,7 @@ Using Python's built-in `unittest`:
 - Correctly map `temp1` to ET and `temp2` to BT.
 - Correctly map the Kaleido heater/fan extra device.
 - Align Charge to `00:00`.
+- Extract optional roast notes and cupping notes without treating missing notes as errors.
 - Extract green and final batch weights and calculate weight-loss percentage.
 - Return Charge and Drop bean temperatures from normalized event data.
 - Calculate Drying, Browning, and Development durations and percentages from event boundaries.
@@ -421,20 +430,21 @@ The implementation is complete when:
 5. Each profile shows green weight and a combined Final weight value formatted as `<final weight> (-<weight loss>%)`, or an em dash when unavailable.
 6. Each profile shows Charge and Drop bean temperatures to one decimal place in °C, or an em dash when unavailable.
 7. Each complete profile shows Drying, Browning, and Development time plus percentage; incomplete profiles show clear unavailable values.
-8. A profile row's checkbox enables/disables all chart content for that profile without deleting it.
-9. All checked profiles appear together in the overlay chart.
-10. Profile identity is represented by a coordinated, muted primary/secondary color palette.
-11. Drying, Browning, and Development table columns use mid-tone green, mid-tone brown, and dark brown respectively.
-12. BT, ET, RoR, heat, and air have distinct line treatments.
-13. The RoR axis runs from 0 at the bottom to the maximum RoR across all enabled profiles.
-14. The far-left axis is titled `AIR / HEAT %`, and its numeric ticks do not repeat the percent symbol.
-15. The chart is taller while remaining responsive and bounded relative to the browser viewport.
-16. Each curve category can be shown or hidden with a checkbox.
-17. Charge, TP, Dry End, First Crack, and Drop pins show where available.
-18. Hover values, automatic chart fitting, remove-profile, and clear-all work.
-19. A glitch/missing-event file does not crash or prevent other files loading.
-20. No upload is persisted and the server only listens on localhost.
-21. `README.md` documents how to start, use, and test the application.
+8. Hovering or keyboard-focusing a profile row shows its available roast and cupping notes in a labeled tooltip.
+9. A profile row's checkbox enables/disables all chart content for that profile without deleting it.
+10. All checked profiles appear together in the overlay chart.
+11. Profile identity is represented by a coordinated, muted primary/secondary color palette.
+12. Drying, Browning, and Development table columns use mid-tone green, mid-tone brown, and dark brown respectively.
+13. BT, ET, RoR, heat, and air have distinct line treatments.
+14. The RoR axis runs from 0 at the bottom to the maximum RoR across all enabled profiles.
+15. The far-left axis is titled `AIR / HEAT %`, and its numeric ticks do not repeat the percent symbol.
+16. The chart is taller while remaining responsive and bounded relative to the browser viewport.
+17. Each curve category can be shown or hidden with a checkbox.
+18. Charge, TP, Dry End, First Crack, and Drop pins show where available.
+19. Hover values, automatic chart fitting, remove-profile, and clear-all work.
+20. A glitch/missing-event file does not crash or prevent other files loading.
+21. No upload is persisted and the server only listens on localhost.
+22. `README.md` documents how to start, use, and test the application.
 
 ## 10. Deliberate non-goals for the first version
 

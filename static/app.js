@@ -18,6 +18,7 @@
     selectAll: document.querySelector("#select-all"),
     selectNone: document.querySelector("#select-none"),
     clearAll: document.querySelector("#clear-all"),
+    notesTooltip: document.querySelector("#notes-tooltip"),
   };
 
   const chart = new window.RoastOverlayChart(
@@ -93,7 +94,43 @@
     return `${finalWeight}${hasLoss ? ` (-${weights.lossPercent.toFixed(1)}%)` : ""}`;
   }
 
+  function notesFor(profile) {
+    return [
+      ["Roast notes", profile.notes?.roast?.trim()],
+      ["Cupping notes", profile.notes?.cupping?.trim()],
+    ].filter(([, value]) => value);
+  }
+
+  function positionNotesTooltip(clientX, clientY) {
+    const tooltip = elements.notesTooltip;
+    const gap = 14;
+    const bounds = tooltip.getBoundingClientRect();
+    const left = clientX + gap + bounds.width > window.innerWidth ? clientX - bounds.width - gap : clientX + gap;
+    const top = Math.max(8, Math.min(clientY + gap, window.innerHeight - bounds.height - 8));
+    tooltip.style.left = `${Math.max(8, Math.min(left, window.innerWidth - bounds.width - 8))}px`;
+    tooltip.style.top = `${top}px`;
+  }
+
+  function showNotesTooltip(profile, clientX, clientY) {
+    const notes = notesFor(profile);
+    if (!notes.length) return;
+    const tooltip = elements.notesTooltip;
+    tooltip.replaceChildren();
+    const title = document.createElement("strong"); title.textContent = profile.displayName; tooltip.append(title);
+    for (const [label, value] of notes) {
+      const heading = document.createElement("span"); heading.className = "notes-label"; heading.textContent = label; tooltip.append(heading);
+      const content = document.createElement("p"); content.textContent = value; tooltip.append(content);
+    }
+    tooltip.hidden = false;
+    positionNotesTooltip(clientX, clientY);
+  }
+
+  function hideNotesTooltip() {
+    elements.notesTooltip.hidden = true;
+  }
+
   function renderProfiles() {
+    hideNotesTooltip();
     elements.section.hidden = profiles.length === 0;
     elements.rows.replaceChildren();
     for (const profile of profiles) {
@@ -115,6 +152,21 @@
       const drying = document.createElement("td"); drying.className = "phase-value phase-drying"; drying.textContent = phaseText(profile.phases.drying);
       const browning = document.createElement("td"); browning.className = "phase-value phase-browning"; browning.textContent = phaseText(profile.phases.browning);
       const development = document.createElement("td"); development.className = "phase-value phase-development"; development.textContent = phaseText(profile.phases.development);
+
+      const noteSections = notesFor(profile);
+      if (noteSections.length) {
+        row.classList.add("has-notes");
+        row.tabIndex = 0;
+        row.setAttribute("aria-describedby", "notes-tooltip");
+        row.addEventListener("mouseenter", event => showNotesTooltip(profile, event.clientX, event.clientY));
+        row.addEventListener("mousemove", event => positionNotesTooltip(event.clientX, event.clientY));
+        row.addEventListener("mouseleave", hideNotesTooltip);
+        row.addEventListener("focus", () => {
+          const bounds = row.getBoundingClientRect();
+          showNotesTooltip(profile, bounds.left + bounds.width / 2, bounds.bottom);
+        });
+        row.addEventListener("blur", hideNotesTooltip);
+      }
 
       const actions = document.createElement("td");
       const remove = document.createElement("button"); remove.type = "button"; remove.className = "remove-button"; remove.textContent = "×";

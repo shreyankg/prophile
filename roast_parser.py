@@ -323,6 +323,10 @@ def parse_alog(text: str, filename: str, profile_id: str = "") -> dict[str, Any]
         "displayName": _display_name(filename),
         "title": str(data.get("title") or _display_name(filename)),
         "unit": "C",
+        "notes": {
+            "roast": data.get("roastingnotes", "").strip() if isinstance(data.get("roastingnotes"), str) else "",
+            "cupping": data.get("cuppingnotes", "").strip() if isinstance(data.get("cuppingnotes"), str) else "",
+        },
         "weights": {
             "green": None if green_weight is None else round(green_weight, 4),
             "final": None if final_weight is None else round(final_weight, 4),

@@ -76,6 +76,7 @@ tbody tr.profile-disabled { color: #9297a1; background: #faf9f6; }
 .compare-cell { text-align: center; width: 76px; }
 .compare-cell input, .curve-controls input { accent-color: var(--blue); cursor: pointer; height: 16px; width: 16px; }
 .profile-name { font-weight: 750; min-width: 230px; }
+.has-notes .profile-name { text-decoration: underline dotted currentColor; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .profile-name small { color: var(--muted); display: block; font-weight: 400; margin-top: 3px; }
 .phase-value, .temperature-value, .weight-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .temperature-value, .weight-value { font-weight: 650; }
@@ -117,6 +118,11 @@ canvas { display: block; height: 100%; width: 100%; }
 .tooltip-profile { font-weight: 750; margin-top: 5px; }
 .tooltip-row { color: #d9deea; display: flex; gap: 12px; justify-content: space-between; min-width: 170px; }
 .tooltip-row span:last-child { color: white; font-variant-numeric: tabular-nums; }
+.notes-tooltip { background: rgba(20, 29, 47, .97); border-radius: 8px; box-shadow: 0 10px 32px rgba(0,0,0,.24); color: #fff; font-size: 12px; line-height: 1.45; max-height: min(420px, calc(100vh - 16px)); max-width: min(380px, calc(100vw - 16px)); overflow: auto; padding: 12px 14px; pointer-events: none; position: fixed; white-space: pre-wrap; width: max-content; z-index: 20; }
+.notes-tooltip[hidden] { display: none; }
+.notes-tooltip > strong { display: block; font-size: 13px; margin-bottom: 8px; }
+.notes-tooltip .notes-label { color: #aebbd1; display: block; font-size: 10px; font-weight: 800; letter-spacing: .08em; margin-top: 8px; text-transform: uppercase; }
+.notes-tooltip p { margin: 3px 0 0; max-width: 340px; }
 
 .sr-only { clip: rect(0, 0, 0, 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
 

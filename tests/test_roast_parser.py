@@ -18,6 +18,8 @@ def fixture(*, missing_events=False, extras=True, mismatched=False):
     data = {
         "mode": "C",
         "title": "Synthetic roast",
+        "roastingnotes": "Steady declining heat.",
+        "cuppingnotes": "Sweet and balanced.",
         "weight": [125.0, 105.0, "g"],
         "timex": times,
         "temp1": et + ([999] if mismatched else []),
@@ -66,6 +68,7 @@ class RoastParserTests(unittest.TestCase):
     def test_phase_calculations_and_filename_display(self):
         result = parse_alog(fixture(), "my_test_profile.alog")
         self.assertEqual(result["displayName"], "my test profile")
+        self.assertEqual(result["notes"], {"roast": "Steady declining heat.", "cupping": "Sweet and balanced."})
         self.assertEqual(result["phases"]["total"], 80.0)
         self.assertEqual(result["phases"]["drying"], {"seconds": 20.0, "percent": 25.0})
         self.assertEqual(result["phases"]["browning"], {"seconds": 20.0, "percent": 25.0})
