@@ -3,8 +3,12 @@ from __future__ import annotations
 import ast
 import math
 import unittest
+from pathlib import Path
 
 from roast_parser import RoastParseError, parse_alog
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def fixture(*, missing_events=False, extras=True, mismatched=False):
@@ -45,6 +49,15 @@ def fixture(*, missing_events=False, extras=True, mismatched=False):
 
 
 class RoastParserTests(unittest.TestCase):
+    def test_bundled_sample_profiles(self):
+        paths = sorted((ROOT / "sample_profiles").glob("*.alog"))
+        self.assertEqual(len(paths), 3)
+        for path in paths:
+            result = parse_alog(path.read_text(), path.name, path.stem)
+            self.assertTrue(result["series"]["bt"])
+            self.assertTrue(result["series"]["et"])
+            self.assertEqual(result["id"], path.stem)
+
     def test_representative_alog(self):
         result = parse_alog(fixture(), "representative.alog", "fixture-id")
         self.assertEqual(result["id"], "fixture-id")

@@ -44,6 +44,16 @@ Stop the server with `Ctrl+C`.
 
 The chart automatically fits the enabled profiles. The right-side RoR scale runs from 0 at the bottom to the highest RoR across all enabled profiles. The far-left `AIR / HEAT %` axis uses numeric ticks without repeated percent symbols. Its responsive height is increased for readability while remaining bounded to the browser viewport. Profiles are aligned to Charge at `00:00` and ordinarily end at Drop. Files with missing events remain chartable and show unavailable phase values where needed.
 
+## Sample profiles
+
+Three `.alog` examples are bundled in `sample_profiles/`:
+
+- `26-09-12_Baarbara_Washed_AA_batch_3.alog`
+- `26-09-12_Baarbara_Washed_AA_batch_4.alog`
+- `26-09-12_Baarbara_Washed_AA_batch_5.alog`
+
+Select all three through **Choose .alog files** to immediately try the multi-profile table and overlay chart. The full private development profile collection remains excluded from Git.
+
 ## Features
 
 - Multi-file `.alog` selection and drag-and-drop
@@ -102,4 +112,4 @@ Run the standard-library test suite from the project root:
 python3 -m unittest discover -s tests -v
 ```
 
-Tests use synthetic fixtures covering representative, incomplete, mismatched, unsafe, and Fahrenheit inputs. Private roast profiles are not required by the test suite.
+Tests parse all three bundled sample profiles and use synthetic fixtures covering representative, incomplete, mismatched, unsafe, and Fahrenheit inputs. The full private roast-profile collection is not required by the test suite.

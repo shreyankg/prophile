@@ -19,7 +19,8 @@ The chart will support:
 
 ### 2.1 Collection
 
-- The private development dataset contained 34 Artisan `.alog` files and is excluded from the Git repository.
+- The full private development dataset contained 34 Artisan `.alog` files and is excluded from the Git repository.
+- Three recent representative profiles are intentionally included under `sample_profiles/` for evaluation and manual comparison: `26-09-12_Baarbara_Washed_AA_batch_3.alog`, `26-09-12_Baarbara_Washed_AA_batch_4.alog`, and `26-09-12_Baarbara_Washed_AA_batch_5.alog`.
 - Files were Artisan roast logs, primarily written by Artisan 4.0.2.
 - All analyzed files could be parsed as Python literals.
 - Files were roughly 48–96 KB and contained approximately 342–853 samples each.
@@ -331,6 +332,10 @@ prophile/
 │   ├── app.js
 │   ├── chart.js
 │   └── styles.css
+├── sample_profiles/
+│   ├── 26-09-12_Baarbara_Washed_AA_batch_3.alog
+│   ├── 26-09-12_Baarbara_Washed_AA_batch_4.alog
+│   └── 26-09-12_Baarbara_Washed_AA_batch_5.alog
 ├── tests/
 │   └── test_roast_parser.py
 └── README.md
@@ -343,7 +348,8 @@ Responsibilities:
 - `app.js`: file selection, state, profile table, controls, and API calls
 - `chart.js`: canvas drawing, axes, line styles, pins, hover, and automatic range fitting
 - `styles.css`: responsive visual system
-- `test_roast_parser.py`: parser and normalization tests using real/synthetic fixtures
+- `sample_profiles/`: three bundled `.alog` examples for trying multi-profile comparison
+- `test_roast_parser.py`: parser and normalization tests using bundled samples and synthetic fixtures
 - `README.md`: prerequisites, startup command, usage instructions, feature summary, supported `.alog` fields, and test command
 
 ### 6.3 Local API
@@ -404,6 +410,7 @@ Warnings are non-blocking when a useful partial profile can still be charted.
 
 Using Python's built-in `unittest`:
 
+- Parse all three bundled profiles from `sample_profiles/`.
 - Parse a representative synthetic `.alog` fixture.
 - Correctly map `temp1` to ET and `temp2` to BT.
 - Correctly map the Kaleido heater/fan extra device.
@@ -425,7 +432,7 @@ The implementation is complete when:
 
 1. `python3 server.py` starts the app with no dependency installation.
 2. The initial screen clearly explains that the app compares Artisan profiles, milestones, and phase timing.
-3. A user can select multiple `.alog` files in one picker action.
+3. A user can select multiple `.alog` files in one picker action, including the three bundled examples in `sample_profiles/`.
 4. Every valid file appears in the profile-selection table with a filename-derived display name.
 5. Each profile shows green weight and a combined Final weight value formatted as `<final weight> (-<weight loss>%)`, or an em dash when unavailable.
 6. Each profile shows Charge and Drop bean temperatures to one decimal place in °C, or an em dash when unavailable.
