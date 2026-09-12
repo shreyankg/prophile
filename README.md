@@ -1,0 +1,95 @@
+# Roast Profile Overlay
+
+A lightweight localhost web app for comparing multiple Artisan `.alog` coffee-roast profiles on a shared chart. It overlays bean temperature, exhaust temperature, rate of rise, heater output, and air output; marks roast milestones; and summarizes Charge/Drop temperatures plus Drying, Browning, and Development timing.
+
+## Requirements
+
+- Python 3.10 or newer
+- A modern browser
+
+There are no third-party Python or JavaScript dependencies.
+
+## Start the app
+
+From this directory, run:
+
+```bash
+python3 server.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000
+```
+
+To use a different port:
+
+```bash
+python3 server.py --port 8080
+```
+
+Stop the server with `Ctrl+C`.
+
+## Use
+
+1. Select **Choose .alog files**, or drop files onto the drop area.
+2. Choose one or more Artisan `.alog` profiles.
+3. Use the profile table checkboxes to include or exclude whole profiles.
+4. Review the Charge and Drop bean temperatures and the Drying, Browning, and Development duration/percentage columns.
+5. Use the chart checkboxes to show or hide Bean temp, Exhaust temp, RoR, Heat, Air, or Event pins.
+6. Hover over the chart for values at an elapsed time, or hover near a pin for milestone details.
+7. Use **Select all**, **Select none**, individual remove buttons, or **Clear all** to manage the comparison.
+
+The chart automatically fits the enabled profiles. The right-side RoR scale runs from 0 at the bottom to the highest RoR across all enabled profiles. Profiles are aligned to Charge at `00:00` and ordinarily end at Drop. Files with missing events remain chartable and show unavailable phase values where needed.
+
+## Features
+
+- Multi-file `.alog` selection and drag-and-drop
+- Single-family blue/indigo shades to identify profiles
+- Distinct line styles for BT, ET, RoR, heater, and air
+- Dynamic RoR scale from 0 to the maximum RoR across enabled profiles
+- Charge, Turning Point, Dry End, First Crack Start, and Drop pins
+- Per-profile and per-measurement visibility controls
+- Charge and Drop bean temperatures in the profile table
+- Drying, Browning, and Development time/percentage table
+- Crosshair tooltips and responsive Canvas rendering
+- Partial support for incomplete or glitch profiles through non-blocking warnings
+- Safe parsing with Python `ast.literal_eval`
+
+## Supported `.alog` fields
+
+The parser uses these Artisan fields:
+
+| Data | Field |
+|---|---|
+| Unit | `mode` |
+| Profile metadata | `title` |
+| Main timestamps | `timex` |
+| Exhaust/environment temperature | `temp1` |
+| Bean temperature | `temp2` |
+| Milestone indices | `timeindex` |
+| Computed milestone details | `computed` |
+| Extra device declaration | `devices`, `extradevices` |
+| Heater/fan timestamps | `extratimex` |
+| Heater output | `extratemp1` |
+| Air/fan output | `extratemp2` |
+
+RoR is calculated from BT with a centered 30-second least-squares window. Phase timing is derived from event boundaries:
+
+- Drying: Charge to Dry End
+- Browning: Dry End to First Crack Start
+- Development: First Crack Start to Drop
+- Percentage: phase duration divided by Charge-to-Drop time
+
+Charge and Drop table temperatures use the corresponding normalized event BT values and are shown to one decimal place in °C; unavailable values appear as an em dash. Fahrenheit profiles are normalized to Celsius. Heater/air extraction looks for an extra device labeled `Heater/Fan` and falls back to the first extra channel for compatibility with the supplied Kaleido logs.
+
+## Test
+
+Run the standard-library test suite from the project root:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+Tests cover a supplied real profile plus synthetic normal, incomplete, mismatched, unsafe, and Fahrenheit inputs.

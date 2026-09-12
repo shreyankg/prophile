@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roast Profile Overlay</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">ARTISAN PROFILE COMPARISON</p>
+        <h1>Roast Profile Overlay</h1>
+        <p class="purpose">Compare Artisan roast profiles on one chart, inspect roast milestones, and review phase timing.</p>
+      </div>
+      <label class="file-button" for="file-input">
+        <span>Choose .alog files</span>
+        <input id="file-input" type="file" accept=".alog" multiple>
+      </label>
+    </header>
+
+    <section id="drop-zone" class="drop-zone" aria-label="File drop area">
+      <strong>Drop Artisan profiles here</strong>
+      <span>or use the file button above to select one or more .alog files</span>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <section id="messages" class="messages" aria-label="Import messages" aria-live="polite"></section>
+
+    <section id="profiles-section" class="panel profiles-panel" hidden>
+      <div class="panel-heading">
+        <div>
+          <p class="section-kicker">SELECTION</p>
+          <h2>Profiles</h2>
+        </div>
+        <div class="table-actions">
+          <button id="select-all" type="button" class="text-button">Select all</button>
+          <button id="select-none" type="button" class="text-button">Select none</button>
+          <button id="clear-all" type="button" class="text-button danger">Clear all</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Compare</th>
+              <th scope="col"><span class="sr-only">Color</span></th>
+              <th scope="col">Profile</th>
+              <th scope="col">Charge temp</th>
+              <th scope="col">Drop temp</th>
+              <th scope="col">Drying</th>
+              <th scope="col">Browning</th>
+              <th scope="col">Development</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="profile-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="chart-header">
+        <div>
+          <p class="section-kicker">OVERLAY</p>
+          <h2>Roast curves</h2>
+        </div>
+        <fieldset id="curve-controls" class="curve-controls">
+          <legend class="sr-only">Visible chart measurements</legend>
+          <label><input type="checkbox" data-series="bt" checked> Bean temp</label>
+          <label><input type="checkbox" data-series="et" checked> Exhaust temp</label>
+          <label><input type="checkbox" data-series="ror" checked> RoR</label>
+          <label><input type="checkbox" data-series="heat" checked> Heat</label>
+          <label><input type="checkbox" data-series="air" checked> Air</label>
+          <label><input type="checkbox" data-series="events" checked> Event pins</label>
+        </fieldset>
+      </div>
+
+      <div class="legends" aria-label="Chart legend">
+        <div class="curve-legend">
+          <span><i class="line solid"></i>BT</span>
+          <span><i class="line long-dash"></i>ET</span>
+          <span><i class="line dot-dash"></i>RoR</span>
+          <span><i class="line step"></i>Heat</span>
+          <span><i class="line step-dot"></i>Air</span>
+        </div>
+        <div id="profile-legend" class="profile-legend"></div>
+      </div>
+
+      <div id="chart-wrap" class="chart-wrap">
+        <canvas id="chart" aria-describedby="chart-summary"></canvas>
+        <div id="chart-empty" class="chart-empty">
+          <strong>No profiles selected</strong>
+          <span>Choose one or more .alog files to build an overlay.</span>
+        </div>
+        <div id="tooltip" class="tooltip" hidden></div>
+      </div>
+      <p id="chart-summary" class="sr-only">No roast profiles are loaded.</p>
+    </section>
+  </main>
+  <script src="/chart.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
