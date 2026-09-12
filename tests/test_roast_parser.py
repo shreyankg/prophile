@@ -18,6 +18,7 @@ def fixture(*, missing_events=False, extras=True, mismatched=False):
     data = {
         "mode": "C",
         "title": "Synthetic roast",
+        "weight": [125.0, 105.0, "g"],
         "timex": times,
         "temp1": et + ([999] if mismatched else []),
         "temp2": bt,
@@ -55,6 +56,7 @@ class RoastParserTests(unittest.TestCase):
         self.assertEqual(result["series"]["bt"][0][1], 207.6)
         self.assertEqual(result["series"]["heat"][0][1], 50.0)
         self.assertEqual(result["series"]["air"][0][1], 0.0)
+        self.assertEqual(result["weights"], {"green": 125.0, "final": 105.0, "lossPercent": 16.0, "unit": "g"})
         self.assertEqual(result["series"]["bt"][0][0], 0.0)
         events = {event["key"]: event for event in result["events"]}
         self.assertEqual(events["charge"]["bt"], 207.6)
@@ -68,6 +70,7 @@ class RoastParserTests(unittest.TestCase):
         self.assertEqual(result["phases"]["drying"], {"seconds": 20.0, "percent": 25.0})
         self.assertEqual(result["phases"]["browning"], {"seconds": 20.0, "percent": 25.0})
         self.assertEqual(result["phases"]["development"], {"seconds": 40.0, "percent": 50.0})
+        self.assertEqual(result["weights"], {"green": 125.0, "final": 105.0, "lossPercent": 16.0, "unit": "g"})
 
     def test_ror_for_linear_temperature(self):
         result = parse_alog(fixture(), "linear.alog")

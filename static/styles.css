@@ -36,7 +36,7 @@ button:focus-visible, input:focus-visible, .file-button:has(input:focus-visible)
 .eyebrow, .section-kicker { color: var(--blue); font-size: 11px; font-weight: 800; letter-spacing: .15em; margin: 0 0 7px; }
 h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(36px, 5vw, 61px); font-weight: 500; letter-spacing: -.035em; line-height: .98; margin: 0; }
 h2 { font-family: Georgia, "Times New Roman", serif; font-size: 26px; font-weight: 500; margin: 0; }
-.purpose { color: var(--muted); font-size: 16px; line-height: 1.55; margin: 14px 0 0; max-width: 680px; }
+.purpose { color: var(--muted); font-size: 16px; line-height: 1.55; margin: 14px 0 0; }
 
 .file-button {
   align-items: center; background: var(--ink); border: 1px solid var(--ink); border-radius: 8px; color: white;
@@ -68,7 +68,7 @@ h2 { font-family: Georgia, "Times New Roman", serif; font-size: 26px; font-weigh
 .text-button:hover { text-decoration: underline; }
 .text-button.danger { color: var(--danger); }
 .table-scroll { overflow-x: auto; }
-table { border-collapse: collapse; min-width: 1040px; width: 100%; }
+table { border-collapse: collapse; min-width: 1220px; width: 100%; }
 th { color: var(--muted); font-size: 11px; letter-spacing: .08em; padding: 11px 12px; text-align: left; text-transform: uppercase; }
 td { border-top: 1px solid #ebe7df; padding: 12px; vertical-align: middle; }
 tbody tr:first-child td { border-top: 0; }
@@ -77,8 +77,8 @@ tbody tr.profile-disabled { color: #9297a1; background: #faf9f6; }
 .compare-cell input, .curve-controls input { accent-color: var(--blue); cursor: pointer; height: 16px; width: 16px; }
 .profile-name { font-weight: 750; min-width: 230px; }
 .profile-name small { color: var(--muted); display: block; font-weight: 400; margin-top: 3px; }
-.phase-value, .temperature-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.temperature-value { font-weight: 650; }
+.phase-value, .temperature-value, .weight-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.temperature-value, .weight-value { font-weight: 650; }
 th.phase-drying, td.phase-drying { color: #4f7a55; }
 th.phase-browning, td.phase-browning { color: #94643f; }
 th.phase-development, td.phase-development { color: #593a2b; }

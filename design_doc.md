@@ -13,7 +13,7 @@ The chart will support:
 - Air/fan output
 - Event pins for Charge, Turning Point, Dry End, First Crack Start, and Drop
 - Checkboxes to independently show or hide each curve type and event pins
-- A profile-selection table with one visibility checkbox per profile, Charge and Drop bean temperatures, and Drying, Browning, and Development phase breakdowns
+- A profile-selection table with one visibility checkbox per profile, green batch weight, combined final-weight/weight-loss value, Charge and Drop bean temperatures, and Drying, Browning, and Development phase breakdowns
 
 ## 2. Findings from `Roast Profiles/`
 
@@ -34,6 +34,7 @@ The `.alog` format in this collection is a Python dictionary representation, not
 | Purpose | `.alog` field | Notes |
 |---|---|---|
 | Profile name | `title` | Filename will be the fallback |
+| Green/final batch weight | `weight` | `[green weight, final weight, unit]` |
 | Units | `mode` | `C` in the supplied set |
 | Main timestamps | `timex` | Seconds from recording start |
 | Exhaust/environment temperature | `temp1` | Artisan ET channel |
@@ -86,6 +87,8 @@ After selection, each parsed profile appears as one row in a compact table. On n
 |---|---|
 | Compare | Checkbox that enables/disables the entire profile in the chart without removing it |
 | Profile | Derived from the source filename: remove `.alog`, replace underscores with spaces, and collapse repeated whitespace; the name itself uses the profile's assigned comparison color |
+| Green weight | Green-bean batch weight and source unit, displayed to one decimal place |
+| Final weight | Final roasted batch weight followed by weight-loss percentage in the format `<final weight> (-<weight loss>%)` |
 | Charge temp | Bean temperature at Charge, displayed to one decimal place in °C |
 | Drop temp | Bean temperature at Drop, displayed to one decimal place in °C |
 | Drying | Phase duration as `mm:ss` and percentage of total roast time |
@@ -95,14 +98,14 @@ After selection, each parsed profile appears as one row in a compact table. On n
 
 Example display name: `26-08-14_Baarbara_Washed_AAA_batch_5.alog` becomes `26-08-14 Baarbara Washed AAA batch 5`.
 
-Example temperature and phase cells:
+Example weight, temperature, and phase cells:
 
 ```text
-Charge temp  Drop temp  Drying       Browning      Development
-207.6 °C     187.7 °C   03:49 · 41%  03:40 · 39%   01:50 · 20%
+Green weight  Final weight       Charge temp  Drop temp  Drying       Browning      Development
+125.0 g       105.0 g (-16.0%)  207.6 °C     187.7 °C   03:49 · 41%  03:40 · 39%   01:50 · 20%
 ```
 
-Charge and Drop temperatures come from the normalized event BT values in the API response. If an event or its BT value is missing, its table cell displays an em dash (`—`). Drying is denoted with mid-tone green, Browning with mid-tone brown, and Development with dark brown in both the table headers and values.
+Green and final weights come from the Artisan roast log's structured `weight` field. Weight loss is derived from those values and appended in parentheses to the Final weight cell rather than shown in a separate column. Charge and Drop temperatures come from the normalized event BT values in the API response. If an event or its BT value is missing, its table cell displays an em dash (`—`). Drying is denoted with mid-tone green, Browning with mid-tone brown, and Development with dark brown in both the table headers and values.
 
 Table behavior:
 
@@ -201,6 +204,12 @@ The backend will return only fields needed by the browser. The table's profile l
   "displayName": "profile",
   "title": "Internal Artisan roast title",
   "unit": "C",
+  "weights": {
+    "green": 125.0,
+    "final": 105.0,
+    "lossPercent": 16.0,
+    "unit": "g"
+  },
   "phases": {
     "total": 559.5,
     "drying": {"seconds": 229.5, "percent": 41.0},
@@ -224,7 +233,17 @@ The backend will return only fields needed by the browser. The table's profile l
 
 The server will not retain uploads after responding.
 
-### 5.3 Phase-time and percentage calculation
+### 5.3 Batch weight extraction and calculation
+
+The structured Artisan `weight` value is interpreted as `[green weight, final roasted weight, unit]`. If a weight is absent there, `computed.weightin` and `computed.weightout` are used as fallbacks. Weight values retain their source unit and are displayed to one decimal place.
+
+```text
+weight loss percent = (green weight - final weight) / green weight × 100
+```
+
+The calculated percentage is used when both weights are valid. `computed.weight_loss` is the fallback when the percentage cannot be derived. Missing or invalid values display an em dash (`—`) without preventing the profile from loading.
+
+### 5.4 Phase-time and percentage calculation
 
 The phase table follows the standard three-phase roast model documented by Artisan: Drying ends at Dry End/yellow, Browning (also called the Maillard phase) runs from Dry End to First Crack Start, and Development runs from First Crack Start to Drop.
 
@@ -251,7 +270,7 @@ References used for the phase definitions and calculation:
 
 The percentages are descriptive measurements, not quality targets; the app will not mark any percentage as good or bad.
 
-### 5.4 RoR calculation
+### 5.5 RoR calculation
 
 The files do not serialize the full RoR curve, so BT RoR will be derived from `temp2`.
 
@@ -265,7 +284,7 @@ The window will be a named constant and documented in code so it can be tuned la
 
 The RoR axis starts at 0 and ends at the highest non-negative RoR value across all enabled profiles. The range is recalculated when profiles are enabled, disabled, added, or removed. Negative RoR samples fall outside the displayed RoR scale.
 
-### 5.5 Heater and air extraction
+### 5.6 Heater and air extraction
 
 For this dataset, the first extra device is declared as `+Kaleido Heater/Fan`:
 
@@ -275,7 +294,7 @@ For this dataset, the first extra device is declared as `+Kaleido Heater/Fan`:
 
 The parser will first identify an extra device whose device label contains `Heater/Fan` (case-insensitive), then fall back to index 0 for compatibility with these logs. If no valid channel exists, that profile will load with a warning and without the missing curves.
 
-### 5.6 Mixed temperature units
+### 5.7 Mixed temperature units
 
 The supplied set is entirely Celsius. If a future selection mixes Celsius and Fahrenheit profiles, the backend will normalize Fahrenheit profiles to Celsius and include an import warning. The chart will therefore never combine incompatible temperature scales.
 
@@ -381,6 +400,7 @@ Using Python's built-in `unittest`:
 - Correctly map `temp1` to ET and `temp2` to BT.
 - Correctly map the Kaleido heater/fan extra device.
 - Align Charge to `00:00`.
+- Extract green and final batch weights and calculate weight-loss percentage.
 - Return Charge and Drop bean temperatures from normalized event data.
 - Calculate Drying, Browning, and Development durations and percentages from event boundaries.
 - Return unavailable phase values safely when an event boundary is missing.
@@ -398,22 +418,23 @@ The implementation is complete when:
 2. The initial screen clearly explains that the app compares Artisan profiles, milestones, and phase timing.
 3. A user can select multiple supplied `.alog` files in one picker action.
 4. Every valid file appears in the profile-selection table with a filename-derived display name.
-5. Each profile shows Charge and Drop bean temperatures to one decimal place in °C, or an em dash when unavailable.
-6. Each complete profile shows Drying, Browning, and Development time plus percentage; incomplete profiles show clear unavailable values.
-7. A profile row's checkbox enables/disables all chart content for that profile without deleting it.
-8. All checked profiles appear together in the overlay chart.
-9. Profile identity is represented by a coordinated, muted primary/secondary color palette.
-10. Drying, Browning, and Development table columns use mid-tone green, mid-tone brown, and dark brown respectively.
-11. BT, ET, RoR, heat, and air have distinct line treatments.
-12. The RoR axis runs from 0 at the bottom to the maximum RoR across all enabled profiles.
-13. The far-left axis is titled `AIR / HEAT %`, and its numeric ticks do not repeat the percent symbol.
-14. The chart is taller while remaining responsive and bounded relative to the browser viewport.
-15. Each curve category can be shown or hidden with a checkbox.
-16. Charge, TP, Dry End, First Crack, and Drop pins show where available.
-17. Hover values, automatic chart fitting, remove-profile, and clear-all work.
-18. A glitch/missing-event file does not crash or prevent other files loading.
-19. No upload is persisted and the server only listens on localhost.
-20. `README.md` documents how to start, use, and test the application.
+5. Each profile shows green weight and a combined Final weight value formatted as `<final weight> (-<weight loss>%)`, or an em dash when unavailable.
+6. Each profile shows Charge and Drop bean temperatures to one decimal place in °C, or an em dash when unavailable.
+7. Each complete profile shows Drying, Browning, and Development time plus percentage; incomplete profiles show clear unavailable values.
+8. A profile row's checkbox enables/disables all chart content for that profile without deleting it.
+9. All checked profiles appear together in the overlay chart.
+10. Profile identity is represented by a coordinated, muted primary/secondary color palette.
+11. Drying, Browning, and Development table columns use mid-tone green, mid-tone brown, and dark brown respectively.
+12. BT, ET, RoR, heat, and air have distinct line treatments.
+13. The RoR axis runs from 0 at the bottom to the maximum RoR across all enabled profiles.
+14. The far-left axis is titled `AIR / HEAT %`, and its numeric ticks do not repeat the percent symbol.
+15. The chart is taller while remaining responsive and bounded relative to the browser viewport.
+16. Each curve category can be shown or hidden with a checkbox.
+17. Charge, TP, Dry End, First Crack, and Drop pins show where available.
+18. Hover values, automatic chart fitting, remove-profile, and clear-all work.
+19. A glitch/missing-event file does not crash or prevent other files loading.
+20. No upload is persisted and the server only listens on localhost.
+21. `README.md` documents how to start, use, and test the application.
 
 ## 10. Deliberate non-goals for the first version
 

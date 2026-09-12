@@ -295,12 +295,40 @@ def parse_alog(text: str, filename: str, profile_id: str = "") -> dict[str, Any]
     browning = first_crack - dry if first_crack is not None and dry is not None and first_crack >= dry else None
     development = drop - first_crack if drop is not None and first_crack is not None and drop >= first_crack else None
 
+    weight = _list(data, "weight")
+    green_weight = _number(weight[0]) if len(weight) > 0 else None
+    final_weight = _number(weight[1]) if len(weight) > 1 else None
+    if green_weight is None:
+        green_weight = _number(computed.get("weightin"))
+    if final_weight is None:
+        final_weight = _number(computed.get("weightout"))
+    weight_unit = str(weight[2]).strip() if len(weight) > 2 and weight[2] is not None else ""
+    if green_weight is not None and green_weight <= 0:
+        green_weight = None
+    if final_weight is not None and final_weight < 0:
+        final_weight = None
+    weight_loss = None
+    if green_weight is not None and final_weight is not None:
+        calculated_loss = (green_weight - final_weight) / green_weight * 100.0
+        if calculated_loss >= 0:
+            weight_loss = calculated_loss
+    if weight_loss is None:
+        computed_loss = _number(computed.get("weight_loss"))
+        if computed_loss is not None and computed_loss >= 0:
+            weight_loss = computed_loss
+
     return {
         "id": profile_id,
         "filename": os.path.basename(filename),
         "displayName": _display_name(filename),
         "title": str(data.get("title") or _display_name(filename)),
         "unit": "C",
+        "weights": {
+            "green": None if green_weight is None else round(green_weight, 4),
+            "final": None if final_weight is None else round(final_weight, 4),
+            "lossPercent": None if weight_loss is None else round(weight_loss, 1),
+            "unit": weight_unit,
+        },
         "phases": {
             "total": None if total is None else round(total, 4),
             "drying": _phase(drying, total),

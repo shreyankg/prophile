@@ -1,6 +1,6 @@
 # Roast Profile Overlay
 
-A lightweight localhost web app for comparing multiple Artisan `.alog` coffee-roast profiles on a shared chart. It overlays bean temperature, exhaust temperature, rate of rise, heater output, and air output; marks roast milestones; and summarizes Charge/Drop temperatures plus Drying, Browning, and Development timing.
+A lightweight localhost web app for comparing multiple Artisan `.alog` coffee-roast profiles on a shared chart. It overlays bean temperature, exhaust temperature, rate of rise, heater output, and air output; marks roast milestones; and summarizes batch weights, weight loss, Charge/Drop temperatures, and roast-phase timing.
 
 ## Requirements
 
@@ -36,7 +36,7 @@ Stop the server with `Ctrl+C`.
 1. Select **Choose .alog files**, or drop files onto the drop area.
 2. Choose one or more Artisan `.alog` profiles.
 3. Use the profile table checkboxes to include or exclude whole profiles; each profile name uses the same color as its chart curves.
-4. Review the Charge and Drop bean temperatures and the Drying, Browning, and Development duration/percentage columns.
+4. Review green batch weight, combined final weight/weight loss, Charge and Drop bean temperatures, and the Drying, Browning, and Development duration/percentage columns.
 5. Use the chart checkboxes to show or hide Bean temp, Exhaust temp, RoR, Heat, Air, or Event pins.
 6. Hover over the chart for values at an elapsed time, or hover near a pin for milestone details.
 7. Use **Select all**, **Select none**, individual remove buttons, or **Clear all** to manage the comparison.
@@ -53,6 +53,7 @@ The chart automatically fits the enabled profiles. The right-side RoR scale runs
 - Taller responsive chart bounded to the available viewport
 - Charge, Turning Point, Dry End, First Crack Start, and Drop pins
 - Per-profile and per-measurement visibility controls
+- Green batch weight and combined final weight/weight loss in the format `105.0 g (-16.0%)`
 - Charge and Drop bean temperatures in the profile table
 - Drying, Browning, and Development time/percentage table, denoted by mid-tone green, mid-tone brown, and dark brown
 - Crosshair tooltips and responsive Canvas rendering
@@ -67,6 +68,8 @@ The parser uses these Artisan fields:
 |---|---|
 | Unit | `mode` |
 | Profile metadata | `title` |
+| Green/final batch weight and unit | `weight` |
+| Computed weight fallbacks | `computed.weightin`, `computed.weightout`, `computed.weight_loss` |
 | Main timestamps | `timex` |
 | Exhaust/environment temperature | `temp1` |
 | Bean temperature | `temp2` |
@@ -76,6 +79,8 @@ The parser uses these Artisan fields:
 | Heater/fan timestamps | `extratimex` |
 | Heater output | `extratemp1` |
 | Air/fan output | `extratemp2` |
+
+The `weight` field is read as green weight, final roasted weight, and source unit. Weight loss is calculated as `(green weight - final weight) / green weight × 100`; computed weight fields are used as fallbacks when needed. The table combines final weight and loss as `<final weight> (-<weight loss>%)`, with values displayed to one decimal place. Unavailable values appear as an em dash.
 
 RoR is calculated from BT with a centered 30-second least-squares window. Phase timing is derived from event boundaries:
 
