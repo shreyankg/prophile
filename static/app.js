@@ -27,11 +27,24 @@
     document.querySelector("#chart-summary"),
   );
 
+  const PROFILE_PALETTE = [
+    "#3d6f8e", "#b45f4b", "#4f7a5b", "#80649a", "#b08a3e", "#3f7f7a",
+    "#a5526b", "#c0783e", "#5966a1", "#76824a", "#397d9a", "#8d5a75",
+  ];
+
+  function adjustColor(hex, amount) {
+    const value = Number.parseInt(hex.slice(1), 16);
+    const adjust = channel => Math.max(0, Math.min(255, channel + amount));
+    const red = adjust(value >> 16);
+    const green = adjust((value >> 8) & 255);
+    const blue = adjust(value & 255);
+    return `#${[red, green, blue].map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
+  }
+
   function profileColor(index) {
-    const lightness = [28, 37, 46, 55, 63, 33, 42, 51][index % 8];
-    const cycle = Math.floor(index / 8);
-    const saturation = Math.max(48, 76 - cycle * 9);
-    return `hsl(221 ${saturation}% ${Math.max(24, lightness - cycle * 2)}%)`;
+    const base = PROFILE_PALETTE[index % PROFILE_PALETTE.length];
+    const cycle = Math.floor(index / PROFILE_PALETTE.length) % 3;
+    return cycle === 0 ? base : adjustColor(base, cycle === 1 ? 20 : -18);
   }
 
   function visibility() {
@@ -82,22 +95,19 @@
       check.addEventListener("change", () => { profile.enabled = check.checked; renderProfiles(); updateChart(); });
       compare.append(check);
 
-      const colorCell = document.createElement("td");
-      const color = document.createElement("i"); color.className = "color-dot"; color.style.backgroundColor = profile.color; colorCell.append(color);
-
-      const name = document.createElement("td"); name.className = "profile-name"; name.textContent = profile.displayName;
+      const name = document.createElement("td"); name.className = "profile-name"; name.textContent = profile.displayName; name.style.color = profile.color;
 
       const chargeTemp = document.createElement("td"); chargeTemp.className = "temperature-value"; chargeTemp.textContent = eventTemperature(profile, "charge");
       const dropTemp = document.createElement("td"); dropTemp.className = "temperature-value"; dropTemp.textContent = eventTemperature(profile, "drop");
-      const drying = document.createElement("td"); drying.className = "phase-value"; drying.textContent = phaseText(profile.phases.drying);
-      const browning = document.createElement("td"); browning.className = "phase-value"; browning.textContent = phaseText(profile.phases.browning);
-      const development = document.createElement("td"); development.className = "phase-value"; development.textContent = phaseText(profile.phases.development);
+      const drying = document.createElement("td"); drying.className = "phase-value phase-drying"; drying.textContent = phaseText(profile.phases.drying);
+      const browning = document.createElement("td"); browning.className = "phase-value phase-browning"; browning.textContent = phaseText(profile.phases.browning);
+      const development = document.createElement("td"); development.className = "phase-value phase-development"; development.textContent = phaseText(profile.phases.development);
 
       const actions = document.createElement("td");
       const remove = document.createElement("button"); remove.type = "button"; remove.className = "remove-button"; remove.textContent = "×";
       remove.title = `Remove ${profile.displayName}`; remove.setAttribute("aria-label", remove.title);
       remove.addEventListener("click", () => removeProfile(profile.id)); actions.append(remove);
-      row.append(compare, colorCell, name, chargeTemp, dropTemp, drying, browning, development, actions);
+      row.append(compare, name, chargeTemp, dropTemp, drying, browning, development, actions);
       elements.rows.append(row);
     }
   }

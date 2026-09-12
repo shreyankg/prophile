@@ -85,8 +85,7 @@ After selection, each parsed profile appears as one row in a compact table. On n
 | Column | Content |
 |---|---|
 | Compare | Checkbox that enables/disables the entire profile in the chart without removing it |
-| Color | Assigned profile shade |
-| Profile | Derived from the source filename: remove `.alog`, replace underscores with spaces, and collapse repeated whitespace |
+| Profile | Derived from the source filename: remove `.alog`, replace underscores with spaces, and collapse repeated whitespace; the name itself uses the profile's assigned comparison color |
 | Charge temp | Bean temperature at Charge, displayed to one decimal place in °C |
 | Drop temp | Bean temperature at Drop, displayed to one decimal place in °C |
 | Drying | Phase duration as `mm:ss` and percentage of total roast time |
@@ -103,7 +102,7 @@ Charge temp  Drop temp  Drying       Browning      Development
 207.6 °C     187.7 °C   03:49 · 41%  03:40 · 39%   01:50 · 20%
 ```
 
-Charge and Drop temperatures come from the normalized event BT values in the API response. If an event or its BT value is missing, its table cell displays an em dash (`—`).
+Charge and Drop temperatures come from the normalized event BT values in the API response. If an event or its BT value is missing, its table cell displays an em dash (`—`). Drying is denoted with mid-tone green, Browning with mid-tone brown, and Development with dark brown in both the table headers and values.
 
 Table behavior:
 
@@ -128,7 +127,7 @@ The chart will provide:
 
 ### 4.1 Profile color encoding
 
-Each profile receives a distinct shade from a single blue/indigo color family, as requested. Shades will be selected to preserve useful contrast on a warm off-white background. If many profiles are loaded, the palette cycles with a secondary brightness adjustment, but the UI will recommend comparing no more than 6–8 profiles at once for readability.
+Each profile receives a distinct color from a coordinated, muted palette built from primary and secondary hues: blue, terracotta red, green, purple, ochre, teal, berry, orange, indigo, olive, cyan-blue, and mauve. The colors are mid-toned for visibility against the warm off-white background while avoiding highly saturated combinations that cause visual dissonance. For selections beyond the base palette, lighter and darker variants are used to retain distinct profile identities. The UI will recommend comparing no more than 6–8 profiles at once for readability.
 
 Color identifies the **profile**. Line treatment identifies the **measurement**:
 
@@ -140,20 +139,20 @@ Color identifies the **profile**. Line treatment identifies the **measurement**:
 | Heat | Stepped line |
 | Air | Stepped dotted line |
 
-This avoids assigning unrelated colors to measurements and keeps all curves from one profile visually related.
+This keeps all curves from one profile visually related while using a harmonious range of primary and secondary colors to distinguish profiles.
 
 ### 4.2 Axes
 
 - Bottom: elapsed time from Charge, formatted `mm:ss`
 - Left: temperature in the source unit (°C for the supplied profiles)
 - Right: RoR in °C/min, fixed at 0 on the bottom and the maximum visible-profile RoR on the top
-- Far right: heater/air output in percent
+- Far left: heater/air control scale titled `AIR / HEAT %`; numeric tick labels omit repeated percent symbols
 
-Subtle horizontal grid lines and restrained labels will keep a multi-profile chart readable.
+Subtle horizontal grid lines and restrained labels will keep a multi-profile chart readable. The chart uses approximately 68% of the available browser viewport height, capped at 760 px on larger screens and reduced responsively on narrow screens. This is taller than the initial version while preserving space for browser chrome and surrounding controls.
 
 ### 4.3 Event pins
 
-Pins will be drawn at event time and BT value. Each pin uses the profile's shade and a stable abbreviation/shape:
+Pins will be drawn at event time and BT value. Each pin uses the profile's assigned palette color and a stable abbreviation/shape:
 
 - `CHG` — Charge
 - `TP` — Turning Point
@@ -403,15 +402,18 @@ The implementation is complete when:
 6. Each complete profile shows Drying, Browning, and Development time plus percentage; incomplete profiles show clear unavailable values.
 7. A profile row's checkbox enables/disables all chart content for that profile without deleting it.
 8. All checked profiles appear together in the overlay chart.
-9. Profile identity is represented by shades from one color family.
-10. BT, ET, RoR, heat, and air have distinct line treatments.
-11. The RoR axis runs from 0 at the bottom to the maximum RoR across all enabled profiles.
-12. Each curve category can be shown or hidden with a checkbox.
-13. Charge, TP, Dry End, First Crack, and Drop pins show where available.
-14. Hover values, automatic chart fitting, remove-profile, and clear-all work.
-15. A glitch/missing-event file does not crash or prevent other files loading.
-16. No upload is persisted and the server only listens on localhost.
-17. `README.md` documents how to start, use, and test the application.
+9. Profile identity is represented by a coordinated, muted primary/secondary color palette.
+10. Drying, Browning, and Development table columns use mid-tone green, mid-tone brown, and dark brown respectively.
+11. BT, ET, RoR, heat, and air have distinct line treatments.
+12. The RoR axis runs from 0 at the bottom to the maximum RoR across all enabled profiles.
+13. The far-left axis is titled `AIR / HEAT %`, and its numeric ticks do not repeat the percent symbol.
+14. The chart is taller while remaining responsive and bounded relative to the browser viewport.
+15. Each curve category can be shown or hidden with a checkbox.
+16. Charge, TP, Dry End, First Crack, and Drop pins show where available.
+17. Hover values, automatic chart fitting, remove-profile, and clear-all work.
+18. A glitch/missing-event file does not crash or prevent other files loading.
+19. No upload is persisted and the server only listens on localhost.
+20. `README.md` documents how to start, use, and test the application.
 
 ## 10. Deliberate non-goals for the first version
 

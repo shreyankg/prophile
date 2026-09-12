@@ -125,7 +125,7 @@
       if (!profiles.length) { this.bounds = null; return; }
 
       const compact = rect.width < 650;
-      const margin = { top: 30, left: compact ? 52 : 64, right: compact ? 83 : 112, bottom: 52 };
+      const margin = { top: 30, left: compact ? 83 : 112, right: compact ? 52 : 64, bottom: 52 };
       const plot = { x: margin.left, y: margin.top, w: rect.width - margin.left - margin.right, h: rect.height - margin.top - margin.bottom };
       const ranges = this.calculateRanges(profiles);
       const x = value => plot.x + (value - ranges.time[0]) / (ranges.time[1] - ranges.time[0]) * plot.w;
@@ -174,13 +174,14 @@
         const control = 100 - 100 * ratio;
         ctx.textAlign = "left";
         ctx.fillStyle = "#355c9e"; ctx.fillText(ror.toFixed(Math.abs(ror) < 10 ? 1 : 0), plot.x + plot.w + 9, py);
-        ctx.fillStyle = "#8b6b3f"; ctx.fillText(`${Math.round(control)}%`, plot.x + plot.w + (compact ? 42 : 65), py);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#8b6b3f"; ctx.fillText(`${Math.round(control)}`, plot.x - (compact ? 42 : 55), py);
       }
       ctx.font = `700 ${compact ? 9 : 10}px ui-sans-serif, system-ui, sans-serif`;
       ctx.fillStyle = "#687083";
       ctx.textAlign = "left"; ctx.fillText("TEMP °C", plot.x, 13);
       ctx.fillStyle = "#355c9e"; ctx.textAlign = "right"; ctx.fillText("ROR", plot.x + plot.w + 34, 13);
-      ctx.fillStyle = "#8b6b3f"; ctx.fillText("OUTPUT", plot.x + plot.w + (compact ? 81 : 106), 13);
+      ctx.fillStyle = "#8b6b3f"; ctx.textAlign = "left"; ctx.fillText("AIR / HEAT %", compact ? 2 : 8, compact ? 24 : 13);
       ctx.fillStyle = "#687083"; ctx.textAlign = "center"; ctx.fillText("TIME FROM CHARGE", plot.x + plot.w / 2, plot.y + plot.h + 42);
     }
 

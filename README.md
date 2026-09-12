@@ -35,24 +35,26 @@ Stop the server with `Ctrl+C`.
 
 1. Select **Choose .alog files**, or drop files onto the drop area.
 2. Choose one or more Artisan `.alog` profiles.
-3. Use the profile table checkboxes to include or exclude whole profiles.
+3. Use the profile table checkboxes to include or exclude whole profiles; each profile name uses the same color as its chart curves.
 4. Review the Charge and Drop bean temperatures and the Drying, Browning, and Development duration/percentage columns.
 5. Use the chart checkboxes to show or hide Bean temp, Exhaust temp, RoR, Heat, Air, or Event pins.
 6. Hover over the chart for values at an elapsed time, or hover near a pin for milestone details.
 7. Use **Select all**, **Select none**, individual remove buttons, or **Clear all** to manage the comparison.
 
-The chart automatically fits the enabled profiles. The right-side RoR scale runs from 0 at the bottom to the highest RoR across all enabled profiles. Profiles are aligned to Charge at `00:00` and ordinarily end at Drop. Files with missing events remain chartable and show unavailable phase values where needed.
+The chart automatically fits the enabled profiles. The right-side RoR scale runs from 0 at the bottom to the highest RoR across all enabled profiles. The far-left `AIR / HEAT %` axis uses numeric ticks without repeated percent symbols. Its responsive height is increased for readability while remaining bounded to the browser viewport. Profiles are aligned to Charge at `00:00` and ordinarily end at Drop. Files with missing events remain chartable and show unavailable phase values where needed.
 
 ## Features
 
 - Multi-file `.alog` selection and drag-and-drop
-- Single-family blue/indigo shades to identify profiles
+- Coordinated, muted primary and secondary colors applied directly to profile names and their chart curves
 - Distinct line styles for BT, ET, RoR, heater, and air
 - Dynamic RoR scale from 0 to the maximum RoR across enabled profiles
+- Far-left `AIR / HEAT %` control axis with uncluttered numeric tick labels
+- Taller responsive chart bounded to the available viewport
 - Charge, Turning Point, Dry End, First Crack Start, and Drop pins
 - Per-profile and per-measurement visibility controls
 - Charge and Drop bean temperatures in the profile table
-- Drying, Browning, and Development time/percentage table
+- Drying, Browning, and Development time/percentage table, denoted by mid-tone green, mid-tone brown, and dark brown
 - Crosshair tooltips and responsive Canvas rendering
 - Partial support for incomplete or glitch profiles through non-blocking warnings
 - Safe parsing with Python `ast.literal_eval`
