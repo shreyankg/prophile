@@ -102,4 +102,4 @@ Run the standard-library test suite from the project root:
 python3 -m unittest discover -s tests -v
 ```
 
-Tests cover a supplied real profile plus synthetic normal, incomplete, mismatched, unsafe, and Fahrenheit inputs.
+Tests use synthetic fixtures covering representative, incomplete, mismatched, unsafe, and Fahrenheit inputs. Private roast profiles are not required by the test suite.

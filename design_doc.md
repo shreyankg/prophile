@@ -15,14 +15,14 @@ The chart will support:
 - Checkboxes to independently show or hide each curve type and event pins
 - A profile-selection table with one visibility checkbox per profile, green batch weight, combined final-weight/weight-loss value, Charge and Drop bean temperatures, and Drying, Browning, and Development phase breakdowns
 
-## 2. Findings from `Roast Profiles/`
+## 2. Initial dataset findings
 
 ### 2.1 Collection
 
-- The directory contains 34 `.alog` files and `.DS_Store`.
-- Files are Artisan roast logs, primarily written by Artisan 4.0.2.
-- All 34 files can be parsed as Python literals.
-- Files are roughly 48–96 KB and contain approximately 342–853 samples each.
+- The private development dataset contained 34 Artisan `.alog` files and is excluded from the Git repository.
+- Files were Artisan roast logs, primarily written by Artisan 4.0.2.
+- All analyzed files could be parsed as Python literals.
+- Files were roughly 48–96 KB and contained approximately 342–853 samples each.
 - Sampling is generally every 1.5 seconds.
 - Temperature mode is Celsius in all inspected profiles (`mode: "C"`).
 - Some filenames are explicitly marked `glitch`; one glitch profile has no Dry End, First Crack, or Drop event. Missing data must therefore be handled without failing the whole import.
@@ -404,7 +404,7 @@ Warnings are non-blocking when a useful partial profile can still be charted.
 
 Using Python's built-in `unittest`:
 
-- Parse a representative supplied `.alog`.
+- Parse a representative synthetic `.alog` fixture.
 - Correctly map `temp1` to ET and `temp2` to BT.
 - Correctly map the Kaleido heater/fan extra device.
 - Align Charge to `00:00`.
@@ -425,7 +425,7 @@ The implementation is complete when:
 
 1. `python3 server.py` starts the app with no dependency installation.
 2. The initial screen clearly explains that the app compares Artisan profiles, milestones, and phase timing.
-3. A user can select multiple supplied `.alog` files in one picker action.
+3. A user can select multiple `.alog` files in one picker action.
 4. Every valid file appears in the profile-selection table with a filename-derived display name.
 5. Each profile shows green weight and a combined Final weight value formatted as `<final weight> (-<weight loss>%)`, or an em dash when unavailable.
 6. Each profile shows Charge and Drop bean temperatures to one decimal place in °C, or an em dash when unavailable.

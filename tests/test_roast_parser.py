@@ -3,12 +3,8 @@ from __future__ import annotations
 import ast
 import math
 import unittest
-from pathlib import Path
 
 from roast_parser import RoastParseError, parse_alog
-
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def fixture(*, missing_events=False, extras=True, mismatched=False):
@@ -49,21 +45,20 @@ def fixture(*, missing_events=False, extras=True, mismatched=False):
 
 
 class RoastParserTests(unittest.TestCase):
-    def test_representative_real_alog(self):
-        path = ROOT / "Roast Profiles" / "26-07-26_Baarbara_Washed_AAA_batch_1.alog"
-        result = parse_alog(path.read_text(), path.name, "real-id")
-        self.assertEqual(result["id"], "real-id")
+    def test_representative_alog(self):
+        result = parse_alog(fixture(), "representative.alog", "fixture-id")
+        self.assertEqual(result["id"], "fixture-id")
         self.assertEqual(result["unit"], "C")
-        self.assertEqual(result["series"]["et"][0][1], 205.7)
-        self.assertEqual(result["series"]["bt"][0][1], 207.6)
-        self.assertEqual(result["series"]["heat"][0][1], 50.0)
-        self.assertEqual(result["series"]["air"][0][1], 0.0)
+        self.assertEqual(result["series"]["et"][0][1], 181.0)
+        self.assertEqual(result["series"]["bt"][0][1], 102.0)
+        self.assertEqual(result["series"]["heat"][0][1], 75.0)
+        self.assertEqual(result["series"]["air"][0][1], 30.0)
         self.assertEqual(result["weights"], {"green": 125.0, "final": 105.0, "lossPercent": 16.0, "unit": "g"})
         self.assertEqual(result["series"]["bt"][0][0], 0.0)
         events = {event["key"]: event for event in result["events"]}
-        self.assertEqual(events["charge"]["bt"], 207.6)
-        self.assertEqual(events["drop"]["bt"], 187.7)
-        self.assertLessEqual(result["series"]["bt"][-1][0], 364.5)
+        self.assertEqual(events["charge"]["bt"], 102.0)
+        self.assertEqual(events["drop"]["bt"], 118.0)
+        self.assertLessEqual(result["series"]["bt"][-1][0], 80.0)
 
     def test_phase_calculations_and_filename_display(self):
         result = parse_alog(fixture(), "my_test_profile.alog")
