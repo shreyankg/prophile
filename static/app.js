@@ -95,8 +95,12 @@
   }
 
   function notesFor(profile) {
+    const roastNotes = profile.notes?.roast
+      ?.replace(/(?:\\n|\/n|\r?\n)+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
     return [
-      ["Roast notes", profile.notes?.roast?.trim()],
+      ["Roast notes", roastNotes],
       ["Cupping notes", profile.notes?.cupping?.trim()],
     ].filter(([, value]) => value);
   }
