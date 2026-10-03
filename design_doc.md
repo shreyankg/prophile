@@ -327,7 +327,7 @@ README.md, design_doc.md
 
 ### 6.4 Install and run
 
-Install from the checkout with `python3 -m pip install .` (prefer a virtual environment or pipx; no `sudo`). Run `prophile [--port PORT]` from the roast directory and open `http://127.0.0.1:8000` by default. For source-checkout use without installation, run `python3 /path/to/checkout/server.py` from the roast directory. The server binds only to `127.0.0.1`.
+Install from the checkout in a virtual environment (no `sudo`): `python3 -m venv .venv`, activate it, upgrade pip, then `python -m pip install .`. Upgrading pip is important with Apple's bundled Python 3.9/pip 21, which may otherwise build an unusable `UNKNOWN` wheel. Run `prophile [--port PORT]` from the roast directory and open `http://127.0.0.1:8000` by default. For source-checkout use without installation, run `python3 /path/to/checkout/server.py` from the roast directory. The server binds only to `127.0.0.1`.
 
 ## 7. Accessibility and responsiveness
 

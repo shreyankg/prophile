@@ -4,18 +4,23 @@ A lightweight localhost web app for comparing multiple Artisan `.alog` coffee-ro
 
 ## Requirements
 
-- Python 3.10 or newer
+- Python 3.9 or newer
 - A modern browser
 
 There are no third-party runtime dependencies.
 
 ## Install and run from any folder
 
-From the project checkout, install the command (no `sudo`; use a virtual environment or pipx if your system Python is externally managed):
+From the project checkout, install without `sudo` in a virtual environment. On macOS, upgrade the environment's pip first: the pip bundled with Python 3.9 may build an unusable `UNKNOWN` package from this project's `pyproject.toml`.
 
 ```bash
-python3 -m pip install .
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install .
 ```
+
+Keep the environment active to run `prophile` from another folder. Alternatively, use the full path to `.venv/bin/prophile`.
 
 Then change to **any folder containing `.alog` files** and run:
 
