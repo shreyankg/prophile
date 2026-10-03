@@ -99,6 +99,31 @@ class RoastParserTests(unittest.TestCase):
         self.assertGreater(len(result["series"]["bt"]), 0)
         self.assertIn("Drop event is missing; curves continue to the recording end.", result["warnings"])
 
+    def test_bean_group_uses_filename_not_metadata(self):
+        data = ast.literal_eval(fixture())
+        data["beans"] = "aarbara "
+        data["title"] = "Baarbara HSD - Batch 5"
+        self.assertEqual(parse_alog(repr(data), "26-08-15_Baarbara_HSD_batch_5.alog")["bean"], "Baarbara HSD")
+        data["beans"] = "Barabara HSD"
+        data["title"] = "Barabara HSD - Batch 2"
+        self.assertEqual(parse_alog(repr(data), "26-08-02_Baarbara_HSD_batch_2_glitch.alog")["bean"], "Baarbara HSD")
+        data["beans"] = "Ratnagiri Washed AAA"
+        data["title"] = "Ratnagiri Washed AAA - Batch 1"
+        self.assertEqual(parse_alog(repr(data), "26-07-26_Baarbara_Washed_AAA_batch_1.alog")["bean"], "Baarbara Washed AAA")
+        data["beans"] = "Baarbara Naturals"
+        data["title"] = "Baarbara Naturals - Batch 3"
+        self.assertEqual(parse_alog(repr(data), "26-08-22_Baarbara_Natuals_batch_3.alog")["bean"], "Baarbara Natuals")
+
+    def test_glitch_files_suppress_non_fatal_warnings(self):
+        text = fixture(missing_events=True, extras=False)
+        self.assertTrue(parse_alog(text, "ordinary.alog")["warnings"])
+        glitch = parse_alog(text, "batch_glitch.alog")
+        self.assertEqual(glitch["warnings"], [])
+        self.assertTrue(glitch["series"]["bt"])
+        self.assertEqual(parse_alog(text, "BATCH_GLITCH.ALOG")["warnings"], [])
+        with self.assertRaises(RoastParseError):
+            parse_alog("invalid profile", "batch_glitch.alog")
+
     def test_mismatched_arrays_are_clipped_and_optional_channels_warn(self):
         result = parse_alog(fixture(extras=False, mismatched=True), "mismatch.alog")
         self.assertEqual(len(result["series"]["bt"]), 9)

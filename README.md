@@ -7,42 +7,34 @@ A lightweight localhost web app for comparing multiple Artisan `.alog` coffee-ro
 - Python 3.10 or newer
 - A modern browser
 
-There are no third-party Python or JavaScript dependencies.
+There are no third-party runtime dependencies.
 
-## Start the app
+## Install and run from any folder
 
-From this directory, run:
-
-```bash
-python3 server.py
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8000
-```
-
-To use a different port:
+From the project checkout, install the command (no `sudo`; use a virtual environment or pipx if your system Python is externally managed):
 
 ```bash
-python3 server.py --port 8080
+python3 -m pip install .
 ```
 
-Stop the server with `Ctrl+C`.
+Then change to **any folder containing `.alog` files** and run:
+
+```bash
+cd /path/to/roasts
+prophile
+```
+
+Open `http://127.0.0.1:8000` in a browser. Use `prophile --port 8080` for another port; stop with `Ctrl+C`. The command reads `.alog` files directly in the directory where it was launched (non-recursive); it does not modify them. Only this local browser can access the server. For development without installing, run `python3 /path/to/prophile/server.py` from the roast directory.
 
 ## Use
 
-1. Select **Choose .alog files**, or drop files onto the drop area.
-2. Choose one or more Artisan `.alog` profiles.
-3. Use the profile table checkboxes to include or exclude whole profiles; each profile name uses the same color as its chart curves.
-4. Review green batch weight, combined final weight/weight loss, Charge and Drop bean temperatures, and the Drying, Browning, and Development duration/percentage columns.
-5. Hover over a profile row to see its available roast notes and cupping notes. Rows with notes use a dotted profile-name underline and can also be focused with the keyboard.
-6. Use the chart checkboxes to show or hide Bean temp, Exhaust temp, RoR, Heat, Air, or Event pins.
-7. Hover over the chart for values at an elapsed time, or hover near a pin for milestone details.
-8. Use **Select all**, **Select none**, individual remove buttons, or **Clear all** to manage the comparison.
+1. On opening the page, profiles in the launch directory appear in the **Beans & batches** sidebar, grouped solely by filename (date prefix and trailing batch number/`glitch` suffix removed; Artisan metadata is ignored). **Nothing is selected initially**, so the grid and chart are empty.
+2. Tick a batch, tick a bean group, or use **Select all** to add profiles to both the grid and chart. Untick them or use **Select none** to remove them from the comparison without deleting them from the sidebar.
+3. Use **Choose .alog files** or drop files anywhere on the page to add more profiles (these are selected on import). Use × in the grid to remove a batch from the comparison (it remains in the sidebar); use × in the sidebar to remove it entirely, or **Clear all** to remove everything from the current page. Reload to rediscover files in the launch directory.
+4. Hover over a selected grid row to emphasize its chart curves, or hover near a curve/event pin to highlight its corresponding grid row. Rows with notes show the roast and cupping notes on hover/focus.
+5. Use chart checkboxes to show or hide Bean temp, Exhaust temp, RoR, Heat, Air, or Event pins. Hover over the chart for values at an elapsed time.
 
-The chart automatically fits the enabled profiles. The right-side RoR scale runs from 0 at the bottom to the highest RoR across all enabled profiles. The far-left `AIR / HEAT %` axis uses numeric ticks without repeated percent symbols. Its responsive height is increased for readability while remaining bounded to the browser viewport. Profiles are aligned to Charge at `00:00` and ordinarily end at Drop. Files with missing events remain chartable and show unavailable phase values where needed.
+The chart automatically fits selected profiles. Profiles are aligned to Charge at `00:00` and ordinarily end at Drop. Files with missing events remain chartable and show unavailable phase values where needed.
 
 ## Sample profiles
 
@@ -52,11 +44,11 @@ Three `.alog` examples are bundled in `sample_profiles/`:
 - `26-09-12_Baarbara_Washed_AA_batch_4.alog`
 - `26-09-12_Baarbara_Washed_AA_batch_5.alog`
 
-Select all three through **Choose .alog files** to immediately try the multi-profile table and overlay chart. The full private development profile collection remains excluded from Git.
+Run `prophile` from `sample_profiles/`, then select the bean group to try the multi-profile table and overlay chart. The full private development profile collection remains excluded from Git.
 
 ## Features
 
-- Multi-file `.alog` selection and drag-and-drop
+- Launch-directory `.alog` discovery, bean-grouped filters, multi-file selection and drag-and-drop
 - Coordinated, muted primary and secondary colors applied directly to profile names and their chart curves
 - Distinct line styles for BT, ET, RoR, heater, and air
 - Dynamic RoR scale from 0 to the maximum RoR across enabled profiles
@@ -69,7 +61,7 @@ Select all three through **Choose .alog files** to immediately try the multi-pro
 - Charge and Drop bean temperatures in the profile table
 - Drying, Browning, and Development time/percentage table, denoted by mid-tone green, mid-tone brown, and dark brown
 - Crosshair tooltips and responsive Canvas rendering
-- Partial support for incomplete or glitch profiles through non-blocking warnings
+- Partial support for incomplete profiles through non-blocking warnings; non-fatal warnings are suppressed for `*glitch.alog` (invalid files still show errors)
 - Safe parsing with Python `ast.literal_eval`
 
 ## Supported `.alog` fields
@@ -112,4 +104,4 @@ Run the standard-library test suite from the project root:
 python3 -m unittest discover -s tests -v
 ```
 
-Tests parse all three bundled sample profiles and use synthetic fixtures covering representative, incomplete, mismatched, unsafe, and Fahrenheit inputs. The full private roast-profile collection is not required by the test suite.
+Tests parse all three bundled sample profiles and use synthetic fixtures covering representative, incomplete, mismatched, unsafe, and Fahrenheit inputs, filename grouping and glitch warnings. Server tests exercise launch-directory discovery and static delivery. The full private roast-profile collection is not required by the test suite.

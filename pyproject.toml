@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prophile-roast-overlay"
+version = "0.1.0"
+description = "Local Artisan roast profile comparison web app"
+requires-python = ">=3.10"
+
+[project.scripts]
+prophile = "prophile.server:main"
+
+[tool.setuptools]
+packages = ["prophile"]
+
+[tool.setuptools.package-data]
+prophile = ["static/*.html", "static/*.js", "static/*.css"]

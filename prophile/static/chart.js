@@ -49,23 +49,34 @@
       this.profiles = [];
       this.visibility = { bt: true, et: true, ror: true, heat: true, air: true, events: true };
       this.hover = null;
+      this.highlightId = null;
+      this.onHoverProfile = () => {};
       this.bounds = null;
       this.resizeObserver = new ResizeObserver(() => this.render());
       this.resizeObserver.observe(canvas.parentElement);
       canvas.addEventListener("mousemove", event => this.onPointer(event));
-      canvas.addEventListener("mouseleave", () => { this.hover = null; this.tooltip.hidden = true; this.render(); });
+      canvas.addEventListener("mouseleave", () => { this.hover = null; this.tooltip.hidden = true; this.setHighlight(null); this.render(); });
     }
 
     setData(profiles, visibility) {
       this.profiles = profiles;
       this.visibility = { ...visibility };
       this.hover = null;
+      this.highlightId = null;
+      this.onHoverProfile(null);
       this.tooltip.hidden = true;
       this.updateSummary();
       this.render();
     }
 
     enabledProfiles() { return this.profiles.filter(profile => profile.enabled); }
+
+    setHighlight(id) {
+      if (this.highlightId === id) return;
+      this.highlightId = id;
+      this.onHoverProfile(id);
+      this.render();
+    }
 
     updateSummary() {
       const profiles = this.enabledProfiles();
@@ -139,12 +150,22 @@
       ctx.save();
       ctx.beginPath(); ctx.rect(plot.x, plot.y, plot.w, plot.h); ctx.clip();
       for (const profile of profiles) {
+        ctx.save();
+        if (this.highlightId && profile.id !== this.highlightId) ctx.globalAlpha = 0.12;
         for (const [key, definition] of Object.entries(SERIES)) {
           if (this.visibility[key]) this.drawSeries(ctx, profile.series[key], definition, profile.color, x, value => yFor(value, definition.axis));
         }
+        ctx.restore();
       }
       ctx.restore();
-      if (this.visibility.events) this.drawEvents(ctx, profiles, x, value => yFor(value, "temp"), plot);
+      if (this.visibility.events) {
+        for (const profile of profiles) {
+          ctx.save();
+          if (this.highlightId && profile.id !== this.highlightId) ctx.globalAlpha = 0.12;
+          this.drawEvents(ctx, [profile], x, value => yFor(value, "temp"), plot);
+          ctx.restore();
+        }
+      }
       if (this.hover) this.drawHover(ctx);
     }
 
@@ -248,7 +269,7 @@
       const my = event.clientY - rect.top;
       const { plot, ranges, x, yFor } = this.bounds;
       if (mx < plot.x || mx > plot.x + plot.w || my < plot.y || my > plot.y + plot.h) {
-        this.hover = null; this.tooltip.hidden = true; this.render(); return;
+        this.hover = null; this.tooltip.hidden = true; this.setHighlight(null); this.render(); return;
       }
       const time = ranges.time[0] + (mx - plot.x) / plot.w * (ranges.time[1] - ranges.time[0]);
       let hoveredEvent = null;
@@ -261,6 +282,17 @@
           }
         }
       }
+      let hit = hoveredEvent ? { profile: hoveredEvent.profile, distance: hoveredEvent.distance } : null;
+      for (const profile of this.enabledProfiles()) {
+        for (const [key, definition] of Object.entries(SERIES)) {
+          if (!this.visibility[key]) continue;
+          const point = nearestPoint(profile.series[key], time);
+          if (!point || Math.abs(x(point[0]) - mx) > 14) continue;
+          const distance = Math.abs(yFor(point[1], definition.axis) - my);
+          if (distance <= 12 && (!hit || distance < hit.distance)) hit = { profile, distance };
+        }
+      }
+      this.setHighlight(hit?.profile.id || null);
       this.hover = { time: hoveredEvent ? hoveredEvent.item.time : time };
       this.showTooltip(hoveredEvent, time, mx, my);
       this.render();

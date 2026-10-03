@@ -8,10 +8,12 @@
 
   const elements = {
     input: document.querySelector("#file-input"),
-    dropZone: document.querySelector("#drop-zone"),
     status: document.querySelector("#status"),
     messages: document.querySelector("#messages"),
-    section: document.querySelector("#profiles-section"),
+    groups: document.querySelector("#bean-groups"),
+    filterEmpty: document.querySelector("#filter-empty"),
+    gridEmpty: document.querySelector("#grid-empty"),
+    tableScroll: document.querySelector("#table-scroll"),
     rows: document.querySelector("#profile-rows"),
     legend: document.querySelector("#profile-legend"),
     controls: document.querySelector("#curve-controls"),
@@ -27,6 +29,13 @@
     document.querySelector("#chart-empty"),
     document.querySelector("#chart-summary"),
   );
+  chart.onHoverProfile = id => highlightRow(id);
+
+  function highlightRow(id) {
+    for (const row of elements.rows.querySelectorAll("tr[data-profile-id]")) {
+      row.classList.toggle("profile-highlight", id !== null && row.dataset.profileId === id);
+    }
+  }
 
   const PROFILE_PALETTE = [
     "#3d6f8e", "#b45f4b", "#4f7a5b", "#80649a", "#b08a3e", "#3f7f7a",
@@ -54,6 +63,7 @@
 
   function updateChart() {
     chart.setData(profiles, visibility());
+    renderFilters();
     renderLegend();
   }
 
@@ -135,17 +145,15 @@
 
   function renderProfiles() {
     hideNotesTooltip();
-    elements.section.hidden = profiles.length === 0;
+    const selected = profiles.filter(profile => profile.enabled);
+    elements.gridEmpty.hidden = selected.length > 0;
+    elements.tableScroll.hidden = selected.length === 0;
     elements.rows.replaceChildren();
-    for (const profile of profiles) {
+    for (const profile of selected) {
       const row = document.createElement("tr");
-      if (!profile.enabled) row.className = "profile-disabled";
-
-      const compare = document.createElement("td"); compare.className = "compare-cell";
-      const check = document.createElement("input"); check.type = "checkbox"; check.checked = profile.enabled;
-      check.setAttribute("aria-label", `Compare ${profile.displayName}`);
-      check.addEventListener("change", () => { profile.enabled = check.checked; renderProfiles(); updateChart(); });
-      compare.append(check);
+      row.dataset.profileId = profile.id;
+      row.addEventListener("mouseenter", () => chart.setHighlight(profile.id));
+      row.addEventListener("mouseleave", () => chart.setHighlight(null));
 
       const name = document.createElement("td"); name.className = "profile-name"; name.textContent = profile.displayName; name.style.color = profile.color;
 
@@ -174,17 +182,68 @@
 
       const actions = document.createElement("td");
       const remove = document.createElement("button"); remove.type = "button"; remove.className = "remove-button"; remove.textContent = "×";
-      remove.title = `Remove ${profile.displayName}`; remove.setAttribute("aria-label", remove.title);
-      remove.addEventListener("click", () => removeProfile(profile.id)); actions.append(remove);
-      row.append(compare, name, greenWeight, finalWeight, chargeTemp, dropTemp, drying, browning, development, actions);
+      remove.title = `Remove ${profile.displayName} from comparison`; remove.setAttribute("aria-label", remove.title);
+      remove.addEventListener("click", () => { profile.enabled = false; renderProfiles(); updateChart(); }); actions.append(remove);
+      row.append(name, greenWeight, finalWeight, chargeTemp, dropTemp, drying, browning, development, actions);
       elements.rows.append(row);
+    }
+  }
+
+  function batchLabel(profile) {
+    const match = profile.filename.match(/^(\d{2,4}-\d{2}-\d{2})_.+?_batch_(\d+)(_glitch)?\.alog$/i);
+    return match ? `${match[1]} · Batch ${match[2]}${match[3] ? " · glitch" : ""}` : profile.displayName;
+  }
+
+  function renderFilters() {
+    elements.groups.replaceChildren();
+    elements.filterEmpty.hidden = profiles.length > 0;
+    const groups = new Map();
+    for (const profile of profiles) {
+      const bean = profile.bean || "Unknown bean";
+      const key = bean.toLocaleLowerCase();
+      if (!groups.has(key)) groups.set(key, { bean, items: [] });
+      groups.get(key).items.push(profile);
+    }
+    for (const { bean, items } of [...groups.values()].sort((a, b) => a.bean.localeCompare(b.bean))) {
+      const group = document.createElement("section"); group.className = "bean-group";
+      const heading = document.createElement("label"); heading.className = "bean-heading";
+      const groupCheck = document.createElement("input"); groupCheck.type = "checkbox";
+      groupCheck.checked = items.every(profile => profile.enabled);
+      groupCheck.indeterminate = !groupCheck.checked && items.some(profile => profile.enabled);
+      groupCheck.setAttribute("aria-label", `Select all batches of ${bean}`);
+      groupCheck.addEventListener("change", () => {
+        items.forEach(profile => { profile.enabled = groupCheck.checked; });
+        renderProfiles(); updateChart();
+      });
+      const title = document.createElement("strong"); title.textContent = bean;
+      const count = document.createElement("small"); count.textContent = String(items.length);
+      heading.append(groupCheck, title, count); group.append(heading);
+      for (const profile of items) {
+        const item = document.createElement("div"); item.className = "batch-item";
+        const label = document.createElement("label");
+        const check = document.createElement("input"); check.type = "checkbox"; check.checked = profile.enabled;
+        check.setAttribute("aria-label", `Show ${profile.displayName}`);
+        check.addEventListener("change", () => {
+          profile.enabled = check.checked; renderProfiles(); updateChart();
+        });
+        const name = document.createElement("span"); name.textContent = batchLabel(profile);
+        name.title = profile.displayName;
+        name.style.color = profile.color;
+        label.append(check, name);
+        const remove = document.createElement("button"); remove.type = "button";
+        remove.className = "remove-button"; remove.textContent = "×";
+        remove.title = `Remove ${profile.displayName}`; remove.setAttribute("aria-label", remove.title);
+        remove.addEventListener("click", () => removeProfile(profile.id));
+        item.append(label, remove); group.append(item);
+      }
+      elements.groups.append(group);
     }
   }
 
   function renderLegend() {
     elements.legend.replaceChildren();
-    for (const profile of profiles) {
-      const key = document.createElement("span"); key.className = `profile-key${profile.enabled ? "" : " disabled"}`;
+    for (const profile of profiles.filter(profile => profile.enabled)) {
+      const key = document.createElement("span"); key.className = "profile-key";
       const dot = document.createElement("i"); dot.style.backgroundColor = profile.color;
       const label = document.createElement("span"); label.textContent = profile.displayName;
       key.append(dot, label); elements.legend.append(key);
@@ -252,6 +311,28 @@
     elements.input.value = "";
   }
 
+  async function loadLocalProfiles() {
+    try {
+      const response = await fetch("/api/local-profiles");
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not load local profiles.");
+      for (const profile of result.profiles) {
+        if (duplicateKeys.has(`${profile.filename}::${profile.fileSize}`)) continue;
+        profile.enabled = false;
+        profile.color = profileColor(colorSequence++);
+        profile.duplicateKey = `${profile.filename}::${profile.fileSize}`;
+        duplicateKeys.add(profile.duplicateKey);
+        profiles.push(profile);
+        for (const warning of profile.warnings || []) addMessage(`${profile.filename}: ${warning}`);
+      }
+      for (const error of result.errors) addMessage(error, "error");
+      renderProfiles(); updateChart();
+      setStatus(`${profiles.length} profile${profiles.length === 1 ? "" : "s"} found in ${result.directory}. Select batches to compare.`);
+    } catch (error) {
+      addMessage(`Local profiles: ${error.message}`, "error");
+    }
+  }
+
   elements.input.addEventListener("change", () => importFiles(elements.input.files));
   elements.controls.addEventListener("change", event => {
     const input = event.target;
@@ -268,9 +349,16 @@
   elements.selectNone.addEventListener("click", () => { profiles.forEach(profile => { profile.enabled = false; }); renderProfiles(); updateChart(); });
   elements.clearAll.addEventListener("click", clearAll);
 
-  for (const type of ["dragenter", "dragover"]) elements.dropZone.addEventListener(type, event => { event.preventDefault(); elements.dropZone.classList.add("dragging"); });
-  for (const type of ["dragleave", "drop"]) elements.dropZone.addEventListener(type, event => { event.preventDefault(); elements.dropZone.classList.remove("dragging"); });
-  elements.dropZone.addEventListener("drop", event => importFiles(event.dataTransfer.files));
+  // The page itself accepts files without needing a dedicated drop area.
+  document.addEventListener("dragover", event => {
+    if (event.dataTransfer?.types.includes("Files")) event.preventDefault();
+  });
+  document.addEventListener("drop", event => {
+    if (!event.dataTransfer?.files.length) return;
+    event.preventDefault();
+    importFiles(event.dataTransfer.files);
+  });
 
   renderProfiles(); updateChart();
+  loadLocalProfiles();
 })();

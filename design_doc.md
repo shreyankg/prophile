@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-Build a lightweight, local-only web application that lets a user choose one or more Artisan `.alog` roast profiles from disk and compare them in one interactive overlay chart.
+Build a lightweight, installable, local-only web application that discovers Artisan `.alog` files in the launch directory and compares selected roasts in one interactive overlay chart.
 
 The chart will support:
 
@@ -13,7 +13,7 @@ The chart will support:
 - Air/fan output
 - Event pins for Charge, Turning Point, Dry End, First Crack Start, and Drop
 - Checkboxes to independently show or hide each curve type and event pins
-- A profile-selection table with one visibility checkbox per profile, green batch weight, combined final-weight/weight-loss value, Charge and Drop bean temperatures, and Drying, Browning, and Development phase breakdowns
+- A bean-grouped selection sidebar and a table of selected profiles with green batch weight, combined final-weight/weight-loss value, Charge and Drop bean temperatures, and Drying, Browning, and Development phase breakdowns
 
 ## 2. Initial dataset findings
 
@@ -71,55 +71,36 @@ This makes roast milestones line up meaningfully across profiles while preservin
 
 ## 3. User experience
 
-### 3.1 Initial state
+### 3.1 Discovery and initial state
 
-The page opens with:
+The installable `prophile` command can be run from any directory. `GET /api/local-profiles` reads `.alog` files directly in the launch directory (non-recursively); static assets are served from the installed package, not the working directory. Discovered profiles appear in a **Beans & batches** sidebar, with no batches initially selected: both the grid and chart start empty. The file picker accepts multiple `.alog` files, and files can also be dropped anywhere on the page. Imported files are selected immediately.
 
-- App title and a short purpose note: “Compare Artisan roast profiles on one chart, inspect roast milestones, and review phase timing.”
-- A prominent **Choose `.alog` files** button/drop zone
-- An empty-state chart area with brief instructions
-- Curve visibility controls, initially enabled
+Groups are derived **only from filenames**: a leading date and trailing `_batch_N`/`_glitch` suffix are removed, underscores become spaces, and case-insensitive names share a group. Artisan `beans`/`title` metadata does not determine the group. A sidebar batch label shows the date, batch number, and optional `glitch` flag without repeating the group name. Unusual filenames fall back to a filename-derived label.
 
-The native file picker will allow multiple `.alog` files.
+### 3.2 Sidebar and selected-profile grid
 
-### 3.2 Loaded state and profile-selection table
-
-After selection, each parsed profile appears as one row in a compact table. On narrow screens, the table remains horizontally scrollable rather than hiding temperature or phase data.
+The sidebar offers batch and whole-bean checkboxes (including a partial-selection state), **Select all**, **Select none**, a per-batch × to remove a loaded profile entirely, and **Clear all**. Unselected batches remain available in the sidebar. Only selected profiles appear in the grid and chart. On narrow screens, the grid remains horizontally scrollable rather than hiding temperature or phase data; its smaller type and tighter spacing help it fit beside the sidebar.
 
 | Column | Content |
 |---|---|
-| Compare | Checkbox that enables/disables the entire profile in the chart without removing it |
-| Profile | Derived from the source filename: remove `.alog`, replace underscores with spaces, and collapse repeated whitespace; the name itself uses the profile's assigned comparison color |
+| Profile | Source filename without `.alog`, underscores replaced with spaces; the name uses the profile's chart color |
 | Green weight | Green-bean batch weight and source unit, displayed to one decimal place |
-| Final weight | Final roasted batch weight followed by weight-loss percentage in the format `<final weight> (-<weight loss>%)` |
+| Final weight | Final roasted batch weight followed by weight-loss percentage as `<final weight> (-<weight loss>%)` |
 | Charge temp | Bean temperature at Charge, displayed to one decimal place in °C |
 | Drop temp | Bean temperature at Drop, displayed to one decimal place in °C |
 | Drying | Phase duration as `mm:ss` and percentage of total roast time |
 | Browning | Phase duration as `mm:ss` and percentage of total roast time |
 | Development | Phase duration as `mm:ss` and percentage of total roast time |
-| Actions | Remove profile button |
+| Actions | × removes the batch from the comparison without deleting it from the sidebar |
 
 Example display name: `26-08-14_Baarbara_Washed_AAA_batch_5.alog` becomes `26-08-14 Baarbara Washed AAA batch 5`.
-
-Example weight, temperature, and phase cells:
 
 ```text
 Green weight  Final weight       Charge temp  Drop temp  Drying       Browning      Development
 125.0 g       105.0 g (-16.0%)  207.6 °C     187.7 °C   03:49 · 41%  03:40 · 39%   01:50 · 20%
 ```
 
-Green and final weights come from the Artisan roast log's structured `weight` field. Weight loss is derived from those values and appended in parentheses to the Final weight cell rather than shown in a separate column. Charge and Drop temperatures come from the normalized event BT values in the API response. If an event or its BT value is missing, its table cell displays an em dash (`—`). Drying is denoted with mid-tone green, Browning with mid-tone brown, and Development with dark brown in both the table headers and values.
-
-Table behavior:
-
-- Newly imported profiles are checked by default.
-- Unchecking a row immediately removes all curves, pins, and tooltip entries for that profile while retaining the loaded data and phase summary.
-- The header includes **Select all** and **Select none** actions for convenient multi-profile comparison.
-- Additional files can be appended without clearing existing profiles.
-- A **Clear all** action removes every profile.
-- Duplicate files are detected by filename plus file size and are not added twice.
-- Import errors appear per file and do not prevent valid files from loading.
-- Hovering a table row displays its roast notes and cupping notes when either is present. Available notes are labeled separately; empty note sections are omitted. The same tooltip is available by keyboard-focusing a row that has notes.
+Weight loss is derived from the Artisan `weight` field and appended in the Final weight cell. Missing values display `—`. Drying, Browning, and Development use mid-tone green, mid-tone brown, and dark brown in the grid. Duplicate imports (filename plus size) are skipped; per-file errors do not block other imports. Hovering or keyboard-focusing a row with roast or cupping notes reveals a labeled notes tooltip. Hovering a grid row emphasizes its chart curves; hovering near a curve or event pin highlights its grid row.
 
 ### 3.3 Chart interaction
 
@@ -171,7 +152,7 @@ Hovering a pin will show event name, elapsed time, BT, and ET. Missing events ar
 
 ### 4.4 Curve visibility controls
 
-These controls are separate from the per-profile checkboxes in the selection table. A checkbox group above the chart will contain:
+These controls are separate from the profile-selection checkboxes in the sidebar. A checkbox group above the chart contains:
 
 - Bean temp
 - Exhaust temp
@@ -207,6 +188,7 @@ The backend will return only fields needed by the browser. The table's profile l
   "filename": "profile.alog",
   "displayName": "profile",
   "title": "Internal Artisan roast title",
+  "bean": "Filename-derived bean group",
   "unit": "C",
   "notes": {
     "roast": "Roast operator notes",
@@ -239,7 +221,7 @@ The backend will return only fields needed by the browser. The table's profile l
 }
 ```
 
-The server will not retain uploads after responding.
+The server will not retain uploads after responding. Profiles whose filenames end in `glitch.alog` (case-insensitive) suppress non-fatal parser warnings; invalid files still report errors.
 
 ### 5.3 Batch weight extraction and calculation
 
@@ -315,73 +297,41 @@ To keep the app lightweight and easy to run:
 - **Backend:** Python 3 standard library only
 - **Frontend:** semantic HTML, modern vanilla JavaScript, and CSS
 - **Chart:** custom HTML Canvas renderer with a small DOM overlay for controls/tooltips
-- **Dependencies:** none
+- **Runtime dependencies:** none (installation uses a Python build backend)
 - **Network binding:** `127.0.0.1` only
 
-No framework, package manager, database, cloud service, or CDN is required.
+No framework, database, cloud service, or CDN is required; installation uses pip.
 
-### 6.2 Proposed files
+### 6.2 Project layout and responsibilities
 
 ```text
+pyproject.toml                 # build configuration and `prophile` CLI entry point
+server.py, roast_parser.py     # source-checkout entry point and compatibility import
 prophile/
-├── design_doc.md
-├── server.py
-├── roast_parser.py
-├── static/
-│   ├── index.html
-│   ├── app.js
-│   ├── chart.js
-│   └── styles.css
-├── sample_profiles/
-│   ├── 26-09-12_Baarbara_Washed_AA_batch_3.alog
-│   ├── 26-09-12_Baarbara_Washed_AA_batch_4.alog
-│   └── 26-09-12_Baarbara_Washed_AA_batch_5.alog
-├── tests/
-│   └── test_roast_parser.py
-└── README.md
+  server.py                   # localhost static server, local discovery, upload API
+  roast_parser.py             # safe parser, events, phases, and RoR
+  static/
+    index.html                # sidebar, grid, and chart markup
+    app.js                    # imports, selection, filters, grid state
+    chart.js                  # canvas chart and coordinated hover
+    styles.css                # responsive styling
+sample_profiles/              # three bundled `.alog` examples
+tests/                        # parser and server integration tests
+README.md, design_doc.md
 ```
-
-Responsibilities:
-
-- `server.py`: localhost static server and `POST /api/parse`
-- `roast_parser.py`: safe `.alog` parsing, normalization, events, and RoR
-- `app.js`: file selection, state, profile table, controls, and API calls
-- `chart.js`: canvas drawing, axes, line styles, pins, hover, and automatic range fitting
-- `styles.css`: responsive visual system
-- `sample_profiles/`: three bundled `.alog` examples for trying multi-profile comparison
-- `test_roast_parser.py`: parser and normalization tests using bundled samples and synthetic fixtures
-- `README.md`: prerequisites, startup command, usage instructions, feature summary, supported `.alog` fields, and test command
 
 ### 6.3 Local API
 
-`POST /api/parse`
+- `GET /api/local-profiles`: reads `.alog` files in the directory captured at startup, returning normalized profiles, per-file errors, and the directory path. Files outside the directory (including symlink targets) are excluded. Profiles are initially unselected in the browser.
+- `POST /api/parse`: accepts raw `.alog` bytes with a URL-encoded `X-Filename` header and returns a normalized profile or a structured error. Each picker/drop import is independent; uploads are not saved.
 
-- Request body: raw `.alog` text
-- Filename: URL-encoded `X-Filename` header
-- Response: normalized JSON profile
-- Errors: structured JSON with a user-safe message
+### 6.4 Install and run
 
-Raw request bodies keep the server implementation smaller than multipart parsing. The browser will read each selected file and upload it independently, allowing one bad file to fail without affecting the rest.
-
-### 6.4 Running
-
-Planned command:
-
-```bash
-python3 server.py
-```
-
-The terminal will print the local URL, expected to be:
-
-```text
-http://127.0.0.1:8000
-```
-
-An optional `--port` argument will resolve port conflicts.
+Install from the checkout with `python3 -m pip install .` (prefer a virtual environment or pipx; no `sudo`). Run `prophile [--port PORT]` from the roast directory and open `http://127.0.0.1:8000` by default. For source-checkout use without installation, run `python3 /path/to/checkout/server.py` from the roast directory. The server binds only to `127.0.0.1`.
 
 ## 7. Accessibility and responsiveness
 
-- Every checkbox and action has a visible label and keyboard focus state.
+- Every checkbox and action has a visible label or accessible name and keyboard focus state.
 - Rows containing roast or cupping notes can be focused to reveal the same labeled notes tooltip provided on mouseover.
 - File selection works without drag-and-drop.
 - Colors are not the only encoding: filenames, line styles, and event labels remain present.
@@ -402,7 +352,7 @@ The UI will distinguish:
 - Duplicate selection
 - Server/network failure
 
-Warnings are non-blocking when a useful partial profile can still be charted.
+Warnings are non-blocking when a useful partial profile can still be charted. Non-fatal warnings from `*glitch.alog` files are suppressed, but parse errors remain visible.
 
 ## 9. Testing and acceptance criteria
 
@@ -428,30 +378,13 @@ Using Python's built-in `unittest`:
 
 ### 9.2 End-to-end acceptance
 
-The implementation is complete when:
-
-1. `python3 server.py` starts the app with no dependency installation.
-2. The initial screen clearly explains that the app compares Artisan profiles, milestones, and phase timing.
-3. A user can select multiple `.alog` files in one picker action, including the three bundled examples in `sample_profiles/`.
-4. Every valid file appears in the profile-selection table with a filename-derived display name.
-5. Each profile shows green weight and a combined Final weight value formatted as `<final weight> (-<weight loss>%)`, or an em dash when unavailable.
-6. Each profile shows Charge and Drop bean temperatures to one decimal place in °C, or an em dash when unavailable.
-7. Each complete profile shows Drying, Browning, and Development time plus percentage; incomplete profiles show clear unavailable values.
-8. Hovering or keyboard-focusing a profile row shows its available roast and cupping notes in a labeled tooltip.
-9. A profile row's checkbox enables/disables all chart content for that profile without deleting it.
-10. All checked profiles appear together in the overlay chart.
-11. Profile identity is represented by a coordinated, muted primary/secondary color palette.
-12. Drying, Browning, and Development table columns use mid-tone green, mid-tone brown, and dark brown respectively.
-13. BT, ET, RoR, heat, and air have distinct line treatments.
-14. The RoR axis runs from 0 at the bottom to the maximum RoR across all enabled profiles.
-15. The far-left axis is titled `AIR / HEAT %`, and its numeric ticks do not repeat the percent symbol.
-16. The chart is taller while remaining responsive and bounded relative to the browser viewport.
-17. Each curve category can be shown or hidden with a checkbox.
-18. Charge, TP, Dry End, First Crack, and Drop pins show where available.
-19. Hover values, automatic chart fitting, remove-profile, and clear-all work.
-20. A glitch/missing-event file does not crash or prevent other files loading.
-21. No upload is persisted and the server only listens on localhost.
-22. `README.md` documents how to start, use, and test the application.
+1. The installed `prophile` command runs from any directory; `python3 server.py` works from a source checkout without runtime dependencies. The server binds to localhost and does not persist uploads.
+2. On load, all valid `.alog` files directly in the launch directory appear in filename-derived bean groups in the sidebar; grid and chart remain empty until a batch is selected.
+3. Group and batch checkboxes and Select all/none control both grid and chart; imports via multi-file picker or page-wide drop are selected automatically. Grid × deselects a batch; sidebar × removes it entirely; Clear all removes all loaded profiles.
+4. The grid shows filename-derived names, green/final weights, Charge/Drop temperatures, and Drying/Browning/Development values or `—` for missing values. Notes remain available on hover and keyboard focus.
+5. Hovering grid rows emphasizes their chart curves; hovering a chart curve or pin highlights the matching grid row. Colors identify profiles; line styles identify BT, ET, RoR, heat, and air. Curve/event controls, axes, tooltip, and responsive chart work with multiple selections.
+6. Missing events do not prevent plotting. `*glitch.alog` suppresses non-fatal warnings, not errors. Invalid profiles cannot prevent valid ones from loading.
+7. Tests cover parsing, filename grouping, glitch warning suppression, and launch-directory discovery/static delivery; README documents installation, usage, and tests.
 
 ## 10. Deliberate non-goals for the first version
 
@@ -464,15 +397,3 @@ The implementation is complete when:
 - Comparing metadata beyond what is shown in chart tooltips
 
 These can be added later without changing the normalized profile model.
-
-## 11. Implementation order after approval
-
-1. Build and test the safe parser/normalizer.
-2. Implement the localhost server and static file delivery.
-3. Build file selection, profile state, the selection/temperature/phase table, errors, and visibility controls.
-4. Implement chart scales and BT/ET rendering.
-5. Add RoR and stepped heat/air series.
-6. Add event pins, tooltip, legend, and automatic range fitting.
-7. Apply responsive/accessibility styling.
-8. Run automated tests and manually verify representative normal and glitch profiles.
-9. Write concise run/use instructions in `README.md`.

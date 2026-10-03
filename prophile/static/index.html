@@ -20,31 +20,32 @@
       </label>
     </header>
 
-    <section id="drop-zone" class="drop-zone" aria-label="File drop area">
-      <strong>Drop Artisan profiles here</strong>
-      <span>or use the file button above to select one or more .alog files</span>
-    </section>
-
     <div id="status" class="status" role="status" aria-live="polite"></div>
     <section id="messages" class="messages" aria-label="Import messages" aria-live="polite"></section>
 
-    <section id="profiles-section" class="panel profiles-panel" hidden>
+    <div class="workspace">
+    <aside class="panel filter-panel" aria-label="Profile filters">
       <div class="panel-heading">
-        <div>
-          <p class="section-kicker">SELECTION</p>
-          <h2>Profiles</h2>
-        </div>
-        <div class="table-actions">
-          <button id="select-all" type="button" class="text-button">Select all</button>
-          <button id="select-none" type="button" class="text-button">Select none</button>
-          <button id="clear-all" type="button" class="text-button danger">Clear all</button>
-        </div>
+        <div><p class="section-kicker">FILTERS</p><h2>Beans &amp; batches</h2></div>
       </div>
-      <div class="table-scroll">
+      <div class="table-actions filter-actions">
+        <button id="select-all" type="button" class="text-button">Select all</button>
+        <button id="select-none" type="button" class="text-button">Select none</button>
+        <button id="clear-all" type="button" class="text-button danger">Clear all</button>
+      </div>
+      <p id="filter-empty" class="filter-empty">No profiles found. Add .alog files to get started.</p>
+      <div id="bean-groups" class="bean-groups"></div>
+    </aside>
+    <div class="results">
+    <section id="profiles-section" class="panel profiles-panel">
+      <div class="panel-heading">
+        <div><p class="section-kicker">SELECTED BATCHES</p><h2>Profiles</h2></div>
+      </div>
+      <p id="grid-empty" class="grid-empty">Select batches in the sidebar to populate the grid and chart.</p>
+      <div class="table-scroll" id="table-scroll" hidden>
         <table>
           <thead>
             <tr>
-              <th scope="col">Compare</th>
               <th scope="col">Profile</th>
               <th scope="col">Green weight</th>
               <th scope="col">Final weight</th>
@@ -93,12 +94,14 @@
         <canvas id="chart" aria-describedby="chart-summary"></canvas>
         <div id="chart-empty" class="chart-empty">
           <strong>No profiles selected</strong>
-          <span>Choose one or more .alog files to build an overlay.</span>
+          <span>Select batches in the sidebar to build an overlay.</span>
         </div>
         <div id="tooltip" class="tooltip" hidden></div>
       </div>
       <p id="chart-summary" class="sr-only">No roast profiles are loaded.</p>
     </section>
+    </div>
+    </div>
   </main>
   <div id="notes-tooltip" class="notes-tooltip" role="tooltip" hidden></div>
   <script src="/chart.js"></script>
